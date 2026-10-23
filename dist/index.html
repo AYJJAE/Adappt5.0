@@ -71,6 +71,9 @@
     <!-- TOPBAR METRICS & CONTROLS -->
     <div class="topbar-right">
       <div class="sim-clock-display" id="sim-clock" aria-live="polite">T+00:00 · IDLE</div>
+      <button class="btn btn-sm btn-primary" id="btn-topbar-guided-demo" type="button" title="Start guided end-to-end walkthrough">
+        ▶ Start Guided Demo
+      </button>
       <button class="btn btn-sm btn-outline" id="btn-toggle-demo-dock" type="button" title="Toggle simulation controls">
         ⚡ Demo Dock
       </button>
@@ -672,7 +675,7 @@
           ⬅ Back to Incident Map
         </button>
         <div class="site-title-group">
-          <h2>Station Road Arcade Collapse — Site Workspace</h2>
+          <h2 id="site-3d-title">Station Road Arcade Collapse — Site Workspace</h2>
           <span class="site-sim-badge">SIMULATED 3D SITE — NOT A LIVE RECONSTRUCTION</span>
         </div>
       </div>
@@ -705,6 +708,14 @@
         ⬅ Back to Incident Map
       </button>
 
+      <!-- GUIDED DEMONSTRATION INSTRUCTION BANNER -->
+      <div class="guided-demo-banner hidden" id="guided-demo-banner" role="alert" aria-live="assertive">
+        <span class="demo-step-badge" id="demo-step-badge">STEP 1 OF 5</span>
+        <span class="demo-step-text" id="demo-step-text">Starting guided demonstration...</span>
+        <button class="btn btn-xs btn-primary" id="btn-next-demo-step" type="button">Next Step ➡</button>
+        <button class="btn btn-xs btn-outline" id="btn-cancel-demo" type="button">✕ Exit Demo</button>
+      </div>
+
       <div id="three-container" class="three-canvas-container"></div>
 
       <!-- Floating 3D Navigation Guide -->
@@ -719,7 +730,10 @@
       <div class="rover-hud-overlay hidden" id="rover-hud-overlay">
         <div class="hud-top">
           <span class="hud-label">SIMULATED ROVER CAMERA VIEW — NOT LIVE FOOTAGE</span>
-          <span class="hud-rec">● REC [SIMULATED]</span>
+          <div class="hud-controls">
+            <button class="btn btn-xs btn-danger-outline" id="btn-hud-rover-stop" type="button" title="Immediately halt rover movement">⏹ STOP ROVER</button>
+            <span class="hud-rec">● REC [SIMULATED]</span>
+          </div>
         </div>
 
         <div class="hud-crosshair">
@@ -814,7 +828,10 @@
 
     <div class="dock-body" id="dock-body-content">
       <div class="dock-btn-grid">
-        <button class="btn btn-sm btn-primary" id="btn-step-1" type="button">
+        <button class="btn btn-sm btn-primary" id="btn-auto-demo" type="button" title="Start interactive 5-step guided walkthrough">
+          ▶ Start Guided Demo
+        </button>
+        <button class="btn btn-sm btn-outline" id="btn-step-1" type="button">
           1. Start Telemetry
         </button>
         <button class="btn btn-sm btn-outline" id="btn-step-2" type="button">
@@ -823,12 +840,10 @@
         <button class="btn btn-sm btn-outline" id="btn-step-3" type="button">
           3. Trigger Temp Rise
         </button>
-        <button class="btn btn-sm btn-outline" id="btn-auto-demo" type="button">
-          ▶ Auto Demo Flow
-        </button>
       </div>
 
       <div class="dock-footer-actions">
+        <button class="btn btn-xs btn-danger-outline" id="btn-rover-stop" type="button" title="Immediately halt rover movement">⏹ STOP</button>
         <button class="btn btn-xs btn-outline" id="btn-play-pause" type="button">⏸ Pause</button>
         <button class="btn btn-xs btn-outline" id="btn-toggle-conn" type="button">⚡ Drop Link</button>
         <button class="btn btn-xs btn-danger-outline" id="btn-reset" type="button">↺ Reset Demo</button>

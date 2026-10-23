@@ -843,6 +843,45 @@ createServer(async (request, response) => {
       return jsonResponse(response, 200, { ok: true, state });
     }
 
+    // POST /api/observation/dismiss (Dismissing an unverified observation as false sensor trigger)
+    if (request.method === 'POST' && pathname === '/api/observation/dismiss') {
+      const body = await parseBody(request);
+      const obs = state.observations.find(o => o.id === body.id);
+      if (!obs) return jsonResponse(response, 404, { ok: false, error: 'Observation not found' });
+
+      obs.resolved = true;
+      obs.dismissed = true;
+      obs.verification = 'DISMISSED';
+      obs.resolvedAt = formatSimTime(state.sim.elapsedSeconds);
+      obs.resolutionNotes = body.notes || 'Dismissed by operator as false sensor trigger.';
+
+      addTimelineEvent(
+        'OBSERVATION',
+        `Observation Dismissed: ${obs.title}`,
+        `Operator dismissed ${obs.id}: ${obs.resolutionNotes}`,
+        'OPERATOR_INPUT'
+      );
+
+      recalculateAccess();
+      recalculatePriorities();
+
+      return jsonResponse(response, 200, { ok: true, state });
+    }
+
+    // POST /api/rover/stop (Immediate STOP command for rover)
+    if (request.method === 'POST' && pathname === '/api/rover/stop') {
+      state.rover.moving = false;
+      state.rover.status = 'STANDBY';
+      state.rover.speedMps = 0;
+      addTimelineEvent(
+        'SIM_CONTROL',
+        'Rover Emergency Halt',
+        'Operator issued STOP command. Rover halted immediately.',
+        'OPERATOR_INPUT'
+      );
+      return jsonResponse(response, 200, { ok: true, state });
+    }
+
     // POST /api/alert/dismiss (Dismissing does NOT make active sensor condition disappear)
     if (request.method === 'POST' && pathname === '/api/alert/dismiss') {
       const body = await parseBody(request);
