@@ -12,10 +12,10 @@ A zero-dependency, backend-first autonomous reconnaissance and incident verifica
   - Automatically hooks `window.gm_authFailure` and DOM mutation observers: if an API key is rejected, unbilled, or unauthorized, it instantly and smoothly falls back to a clearly labelled **Tactical Schematic Map**.
   - Manual toggle button (`[🗺️ Tactical Schematic View]` / `[🗺️ Try Google Maps]`) allows immediate switching between map modes at any time without data loss.
 - **Fictional Geographically Positioned Demo Incidents**:
-  - **Sector 08 Structural Collapse**: `🔴 CRITICAL (Level 4)`, `UNVERIFIED FIELD REPORT`. Has full interactive 3D Site View.
-  - **River Basin Flash Inundation**: `🟠 HIGH (Level 3)`, `ESTIMATED REMOTE DATA`. Map/telemetry only.
-  - **East Substation Transformer Fire**: `🟠 HIGH (Level 3)`, `ESTIMATED REMOTE DATA`. Map/telemetry only.
-  - **Sector 05 Ridge Escarpment Landslide**: `🟡 MEDIUM (Level 2)`, `ESTIMATED REMOTE DATA`. Map/telemetry only.
+  - **Station Road Arcade Structural Collapse (Vile Parle East)**: `🔴 CRITICAL (Level 4)`, `UNVERIFIED FIELD REPORT`. Has full interactive 3D Site View.
+  - **Milan Subway Flash Inundation (Vile Parle/Santacruz)**: `🟠 HIGH (Level 3)`, `ESTIMATED REMOTE DATA`. Map/telemetry only.
+  - **WEH Feeder Transformer Fire (Vile Parle East)**: `🟠 HIGH (Level 3)`, `ESTIMATED REMOTE DATA`. Map/telemetry only.
+  - **Juhu Scheme Excavation Slope Creep (Vile Parle West)**: `🟡 MEDIUM (Level 2)`, `ESTIMATED REMOTE DATA`. Map/telemetry only.
   - Persistent **`SIMULATED DEMO DATA`** indicator visible at all times.
 - **Interactive 3D Site View (Three.js)**:
   - Labelled **`SIMULATED 3D SITE — NOT A LIVE RECONSTRUCTION`**.
