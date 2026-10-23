@@ -372,7 +372,7 @@ body {
 }
 
 .schematic-pin circle.ring {
-  animation: pulse-pin 2s infinite ease-out;
+  animation: pulse-ring 2.4s infinite ease-in-out;
   pointer-events: none;
 }
 
@@ -382,9 +382,9 @@ body {
   user-select: none;
 }
 
-@keyframes pulse-pin {
-  0% { r: 14; opacity: 0.8; }
-  100% { r: 32; opacity: 0; }
+@keyframes pulse-ring {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.7; }
 }
 
 /* =========================================================================

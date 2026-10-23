@@ -647,6 +647,7 @@ function renderSchematicPins() {
   schematicIncidentPins.querySelectorAll('.schematic-pin').forEach(el => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
+      e.preventDefault();
       const inc = state.incidents.find(i => i.id === el.dataset.id);
       if (inc) selectIncident(inc);
     });
