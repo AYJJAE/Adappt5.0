@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090e13">
+  <meta name="description" content="SUGRIV - Autonomous Disaster Reconnaissance & Incident Verification Command Platform">
+  <title>SUGRIV — Disaster Command Interface</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Local self-contained Three.js library -->
+  <script src="three.min.js"></script>
+</head>
+<body class="mode-map">
+
+  <!-- PERSISTENT SIMULATED DEMO DATA INDICATOR -->
+  <aside class="sim-banner" role="banner" aria-label="Simulation notice">
+    <div class="banner-inner">
+      <span class="banner-pill">SIMULATED DEMO DATA</span>
+      <strong>DISASTER RECONNAISSANCE PLATFORM</strong>
+      <span class="banner-divider">|</span>
+      <span>FICTIONAL DEMO INCIDENTS — NOT REAL DISASTERS</span>
+      <span class="banner-divider">|</span>
+      <span>SERVER MEMORY ONLY</span>
+    </div>
+  </aside>
+
+  <!-- TOP COMPACT NAVIGATION & FILTER BAR -->
+  <header class="app-topbar">
+    <div class="brand-group">
+      <div class="brand-logo">
+        <span class="logo-radar"></span>
+        <h1>SUGRIV</h1>
+      </div>
+      <span class="brand-tag">DISASTER COMMAND</span>
+    </div>
+
+    <!-- INCIDENT FILTERS -->
+    <div class="filters-bar" aria-label="Incident filters">
+      <div class="filter-item">
+        <label for="filter-type">Type:</label>
+        <select id="filter-type" class="filter-select">
+          <option value="ALL">All Types (4)</option>
+          <option value="COLLAPSE">🏢 Building Collapse</option>
+          <option value="FLOOD">🌊 Flooding</option>
+          <option value="FIRE">🔥 Fire</option>
+          <option value="LANDSLIDE">⛰️ Landslide</option>
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label for="filter-severity">Severity:</label>
+        <select id="filter-severity" class="filter-select">
+          <option value="ALL">All Severities</option>
+          <option value="CRITICAL">🔴 Critical (Level 4)</option>
+          <option value="HIGH">🟠 High (Level 3)</option>
+          <option value="MEDIUM">🟡 Medium (Level 2)</option>
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label for="filter-status">Status:</label>
+        <select id="filter-status" class="filter-select">
+          <option value="ALL">All Statuses</option>
+          <option value="ACTIVE_SCOUTING">Active Scouting</option>
+          <option value="MONITORING">Monitoring</option>
+          <option value="CONTAINMENT">Containment</option>
+          <option value="ASSESSMENT">Assessment</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- TOPBAR METRICS & CONTROLS -->
+    <div class="topbar-right">
+      <div class="sim-clock-display" id="sim-clock" aria-live="polite">T+00:00 · IDLE</div>
+      <button class="btn btn-sm btn-outline" id="btn-toggle-demo-dock" type="button" title="Toggle simulation controls">
+        ⚡ Demo Dock
+      </button>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       VIEW 1: FULL-SCREEN GEOGRAPHIC INCIDENT MAP CANVAS
+       ========================================================================= -->
+  <main class="map-view-canvas" id="map-view-canvas">
+    <!-- Google Maps Fullscreen Container (if API key available) -->
+    <div id="google-map-canvas" class="fullscreen-map"></div>
+
+    <!-- Schematic Map Fallback (Clearly labeled if no Google Maps key configured) -->
+    <div id="schematic-map-fallback" class="fullscreen-map schematic-fallback hidden" role="region" aria-label="Schematic Map Fallback">
+      <div class="fallback-banner">
+        <strong>TACTICAL SCHEMATIC MAP FALLBACK</strong>
+        <span id="schematic-banner-desc">Google Maps API key not configured or offline. Showing vector schematic fallback.</span>
+      </div>
+      <svg id="schematic-regional-svg" class="regional-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <pattern id="sec-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+          </pattern>
+        </defs>
+        <rect width="1000" height="600" fill="#090e13" />
+        <rect width="1000" height="600" fill="url(#sec-grid)" />
+        <!-- River schematic -->
+        <path d="M 0 200 C 300 240 500 120 750 280 S 1000 320 1000 320" fill="none" stroke="#162230" stroke-width="45" />
+        <path d="M 0 200 C 300 240 500 120 750 280 S 1000 320 1000 320" fill="none" stroke="#1f364d" stroke-width="25" />
+        <!-- Regional arterial roads -->
+        <path d="M 150 0 L 450 600 M 0 380 L 1000 380 M 500 0 L 500 600" fill="none" stroke="#1b293a" stroke-width="6" />
+        <g id="schematic-incident-pins"></g>
+      </svg>
+    </div>
+
+    <!-- MAP OVERLAY CONTROLS -->
+    <div class="map-floating-bar">
+      <div class="active-incidents-summary" id="incidents-summary-pill">
+        4 Fictional Incidents Displayed
+      </div>
+      <button class="btn btn-xs btn-outline map-mode-btn" id="btn-toggle-map-mode" type="button" title="Switch between Google Maps and Schematic View">
+        🗺️ Tactical Schematic View
+      </button>
+    </div>
+  </main>
+
+  <!-- =========================================================================
+       INCIDENT SELECTION SIDE PANEL
+       ========================================================================= -->
+  <aside class="incident-side-panel closed" id="incident-side-panel" aria-label="Incident details">
+    <header class="panel-header">
+      <div class="panel-title-wrap">
+        <span class="incident-type-tag" id="panel-incident-type">BUILDING COLLAPSE</span>
+        <h2 id="panel-incident-name">Sector 08 Commercial Collapse</h2>
+      </div>
+      <button class="btn-close" id="btn-close-side-panel" type="button" aria-label="Close side panel">✕</button>
+    </header>
+
+    <div class="panel-body">
+      <!-- Status Badges -->
+      <div class="badges-row">
+        <span class="badge-severity critical" id="panel-severity">🔴 CRITICAL (Level 4)</span>
+        <span class="badge-verification" id="panel-verification">UNVERIFIED FIELD REPORT</span>
+        <span class="badge-status" id="panel-status">ACTIVE SCOUTING</span>
+      </div>
+
+      <!-- Core Metadata -->
+      <div class="meta-section">
+        <div class="meta-row">
+          <span class="m-label">Location:</span>
+          <span class="m-val" id="panel-location">Sector 08 Central Commercial Block</span>
+        </div>
+        <div class="meta-row">
+          <span class="m-label">Reported:</span>
+          <span class="m-val" id="panel-report-time">T-01:45</span>
+        </div>
+        <div class="meta-row">
+          <span class="m-label">Last Telemetry Update:</span>
+          <span class="m-val" id="panel-last-update">T+00:00</span>
+        </div>
+      </div>
+
+      <!-- Situation Summary -->
+      <div class="panel-card summary-card">
+        <h3>Situation Summary</h3>
+        <p id="panel-summary">
+          Reported structural pancake with void space entrapment risk. Unmanned forward reconnaissance dispatched to verify internal passages.
+        </p>
+        <small class="disclaimer-text" id="panel-disclaimer">
+          ⚠ Simulated observations; unverified structural estimates. No official casualty count confirmed.
+        </small>
+      </div>
+
+      <!-- Affected Zones -->
+      <div class="panel-card">
+        <h3>Potentially Affected Zones & Approaches</h3>
+        <p class="affected-text" id="panel-affected">
+          Approach Alpha (North Tunnel), Approach Bravo (South Passage), Sector C Target Area
+        </p>
+      </div>
+
+      <!-- Assigned Response Team -->
+      <div class="panel-card team-card">
+        <div class="card-head">
+          <h3>Assigned Response Team</h3>
+          <span class="team-state" id="panel-team-status">ON SCENE</span>
+        </div>
+        <strong id="panel-team-name">Team Vanguard (Recon & Hazmat)</strong>
+      </div>
+
+      <!-- Rover Connection & Live Telemetry -->
+      <div class="panel-card rover-card">
+        <div class="card-head">
+          <h3>Ground Recon Rover</h3>
+          <span class="conn-pill" id="panel-rover-conn">CONNECTED</span>
+        </div>
+        <div class="rover-info" id="panel-rover-info">
+          <div class="rover-telemetry-mini">
+            <div>Unit: <b id="panel-rover-id">SUGRIV-01</b></div>
+            <div>Zone: <b id="panel-rover-zone">Entry Gate</b></div>
+            <div>Spot Temp: <b id="panel-rover-temp">22.0 °C</b></div>
+            <div>LiDAR Clearance: <b id="panel-rover-lidar">18.4 m</b></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3D SITE VIEW ACTION -->
+      <div class="site-view-action-box">
+        <button class="btn btn-primary btn-block btn-3d-action" id="btn-open-3d-site" type="button">
+          📐 Open 3D Site View
+        </button>
+        <div class="site-3d-unavailable hidden" id="site-3d-unavailable-msg">
+          <span>ℹ 3D scene unavailable — Map and telemetry demonstration only.</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       VIEW 2: FULL 3D INTERACTIVE SITE VIEW (THREE.JS WORKSPACE)
+       ========================================================================= -->
+  <section class="site-3d-view hidden" id="site-3d-view" aria-label="3D Site Reconstruction View">
+    <!-- 3D View Top Control Bar -->
+    <header class="site-3d-topbar">
+      <div class="topbar-left">
+        <button class="btn btn-sm btn-outline btn-return-map" id="btn-return-to-map" type="button">
+          ← Return to Incident Map
+        </button>
+        <div class="site-title-group">
+          <h2>Sector 08 Commercial Collapse — Site Workspace</h2>
+          <span class="site-sim-badge">SIMULATED 3D SITE — NOT A LIVE RECONSTRUCTION</span>
+        </div>
+      </div>
+
+      <!-- Camera Mode Toggle -->
+      <div class="camera-mode-toggle" aria-label="3D View modes">
+        <button class="btn btn-sm btn-primary" id="btn-cam-orbit" type="button">
+          🛰 Interactive 3D Site
+        </button>
+        <button class="btn btn-sm btn-outline" id="btn-cam-rover" type="button">
+          📷 Simulated Rover Camera
+        </button>
+      </div>
+
+      <!-- 3D View Camera Helpers -->
+      <div class="site-3d-actions">
+        <button class="btn btn-xs btn-outline" id="btn-cam-follow" type="button">
+          Follow Rover: <b id="follow-state-text">OFF</b>
+        </button>
+        <button class="btn btn-xs btn-outline" id="btn-cam-reset" type="button" title="Reset Camera to default overhead view">
+          ↺ Reset Camera
+        </button>
+      </div>
+    </header>
+
+    <!-- 3D Viewport Container -->
+    <div class="site-3d-viewport" id="site-3d-viewport">
+      <div id="three-container" class="three-canvas-container"></div>
+
+      <!-- Floating 3D Navigation Guide -->
+      <div class="three-nav-hint" id="three-nav-hint">
+        <span>Left-click: <b>Rotate</b></span> | 
+        <span>Right-click / Shift: <b>Pan</b></span> | 
+        <span>Scroll: <b>Zoom</b></span> | 
+        <span>Click zone/rubble for inspection</span>
+      </div>
+
+      <!-- SIMULATED ROVER CAMERA HUD OVERLAY (Visible in Rover Cam mode) -->
+      <div class="rover-hud-overlay hidden" id="rover-hud-overlay">
+        <div class="hud-top">
+          <span class="hud-label">SIMULATED ROVER CAMERA VIEW — NOT LIVE FOOTAGE</span>
+          <span class="hud-rec">● REC [SIMULATED]</span>
+        </div>
+
+        <div class="hud-crosshair">
+          <div class="crosshair-h"></div>
+          <div class="crosshair-v"></div>
+          <div class="crosshair-box"></div>
+        </div>
+
+        <div class="hud-telemetry-strip">
+          <div class="hud-metric">
+            <span class="h-lbl">SPOT THERMAL (IR)</span>
+            <span class="h-val" id="hud-spot-temp">22.0 °C</span>
+          </div>
+          <div class="hud-metric">
+            <span class="h-lbl">FORWARD LIDAR RANGE</span>
+            <span class="h-val" id="hud-lidar-range">18.4 m (CLEAR)</span>
+          </div>
+          <div class="hud-metric">
+            <span class="h-lbl">RF TELEMETRY LINK</span>
+            <span class="h-val" id="hud-conn-health">CONNECTED (-63 dBm)</span>
+          </div>
+          <div class="hud-metric">
+            <span class="h-lbl">SIM TIME</span>
+            <span class="h-val" id="hud-sim-time">T+00:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3D INSPECTION FLYOUT (Shown when clicking a 3D hazard or zone) -->
+      <aside class="three-object-flyout hidden" id="three-object-flyout">
+        <header class="flyout-header">
+          <h4 id="flyout-title">Zone Inspection</h4>
+          <button class="btn-close" id="btn-close-flyout" type="button">✕</button>
+        </header>
+        <div class="flyout-content" id="flyout-content"></div>
+      </aside>
+    </div>
+
+    <!-- 3D SITE WORKFLOW DOCK (Bottom/Side Operations Dock) -->
+    <div class="site-workflow-dock">
+      <!-- Observations & Access -->
+      <div class="workflow-column">
+        <div class="column-header">
+          <h3>Observations & Access Constraints</h3>
+          <span class="route-state" id="dock-active-route">VIA ALPHA</span>
+        </div>
+        <div class="column-body" id="dock-observations-list">
+          <div class="empty-state">No unverified observations.</div>
+        </div>
+      </div>
+
+      <!-- Priorities & Tasks -->
+      <div class="workflow-column">
+        <div class="column-header">
+          <h3>Investigation Priorities (Decoupled from Access)</h3>
+        </div>
+        <div class="column-body" id="dock-priorities-list">
+          <div class="empty-state">No urgent investigation tasks prioritized.</div>
+        </div>
+      </div>
+
+      <!-- Teams & Mission Timeline -->
+      <div class="workflow-column">
+        <div class="column-header">
+          <h3>Response Teams & Tasks</h3>
+        </div>
+        <div class="column-body" id="dock-tasks-list">
+          <div class="empty-state">No active tasks.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       COLLAPSIBLE SIMULATION DEMO DOCK
+       ========================================================================= -->
+  <aside class="demo-dock-card" id="demo-dock-card" aria-label="Demo simulation controls">
+    <header class="dock-header">
+      <div class="dock-title">
+        <span class="radar-dot"></span>
+        <strong>Scenario Controls</strong>
+      </div>
+      <div class="dock-header-actions">
+        <div class="speed-btns">
+          <button class="speed-btn active" id="spd-1x" type="button">1x</button>
+          <button class="speed-btn" id="spd-2x" type="button">2x</button>
+          <button class="speed-btn" id="spd-5x" type="button">5x</button>
+        </div>
+        <button class="btn-dock-collapse" id="btn-collapse-dock" type="button" aria-label="Collapse dock">−</button>
+      </div>
+    </header>
+
+    <div class="dock-body" id="dock-body-content">
+      <div class="dock-btn-grid">
+        <button class="btn btn-sm btn-primary" id="btn-step-1" type="button">
+          1. Start Telemetry
+        </button>
+        <button class="btn btn-sm btn-outline" id="btn-step-2" type="button">
+          2. Trigger Blockage
+        </button>
+        <button class="btn btn-sm btn-outline" id="btn-step-3" type="button">
+          3. Trigger Temp Rise
+        </button>
+        <button class="btn btn-sm btn-outline" id="btn-auto-demo" type="button">
+          ▶ Auto Demo Flow
+        </button>
+      </div>
+
+      <div class="dock-footer-actions">
+        <button class="btn btn-xs btn-outline" id="btn-play-pause" type="button">⏸ Pause</button>
+        <button class="btn btn-xs btn-outline" id="btn-toggle-conn" type="button">⚡ Drop Link</button>
+        <button class="btn btn-xs btn-danger-outline" id="btn-reset" type="button">↺ Reset Demo</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       MODALS & DIALOGS
+       ========================================================================= -->
+  <dialog class="modal-dialog" id="assign-task-dialog">
+    <form class="modal-form" id="assign-task-form" method="dialog">
+      <header class="modal-header">
+        <h3>Assign Field Inspection Task</h3>
+        <button class="btn-close" id="btn-close-modal" type="button" aria-label="Close dialog">✕</button>
+      </header>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="task-title-input">Task Title</label>
+          <input type="text" id="task-title-input" required placeholder="e.g. Inspect Thermal Hotspot">
+        </div>
+        <div class="form-group">
+          <label for="task-zone-select">Target Zone</label>
+          <select id="task-zone-select">
+            <option value="SEARCH_ZONE">Sector C Target Area</option>
+            <option value="CORRIDOR_NORTH">Approach Alpha (North Tunnel)</option>
+            <option value="CORRIDOR_SOUTH">Approach Bravo (South Passage)</option>
+            <option value="ENTRY">Alpha Gate (Entry Staging)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="task-team-select">Response Team</label>
+          <select id="task-team-select">
+            <option value="TEAM_VANGUARD">Team Vanguard (Recon & Hazmat Specialists)</option>
+            <option value="TEAM_SENTINEL">Team Sentinel (Technical Rescue & Obstacle Clearance)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="task-override-input">
+            Operator Override Rationale
+            <small class="helper-text">(Required if overriding system recommendation)</small>
+          </label>
+          <input type="text" id="task-override-input" placeholder="e.g. Deviation approved due to rapid squad proximity">
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn-outline" id="btn-cancel-task" type="button">Cancel</button>
+        <button class="btn btn-primary" type="submit">Dispatch Task</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog class="modal-dialog" id="action-dialog">
+    <form class="modal-form" id="action-form" method="dialog">
+      <header class="modal-header">
+        <h3 id="action-dialog-title">Operator Verification</h3>
+        <button class="btn-close" id="btn-close-action" type="button" aria-label="Close dialog">✕</button>
+      </header>
+      <div class="modal-body">
+        <p id="action-dialog-desc">Confirm action and record operator notes:</p>
+        <div class="form-group">
+          <label for="action-notes-input">Operator Reason / Notes</label>
+          <input type="text" id="action-notes-input" required placeholder="Enter verification notes...">
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn-outline" id="btn-cancel-action" type="button">Cancel</button>
+        <button class="btn btn-primary" id="btn-submit-action" type="submit">Confirm</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- LIVE TOAST FEEDBACK -->
+  <aside class="toast-notice" id="toast-box" role="status" aria-live="polite">
+    <strong id="toast-title">Notice</strong>
+    <span id="toast-msg">Action performed.</span>
+  </aside>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
