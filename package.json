@@ -1,0 +1,12 @@
+{
+  "name": "sugriv",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SUGRIV: Smart Unmanned Ground Reconnaissance & Incident Verification",
+  "main": "serve.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node serve.mjs 4173",
+    "dev": "node serve.mjs 4173"
+  }
+}
