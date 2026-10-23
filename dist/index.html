@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#090e13">
   <title>SUGRIV — Disaster Command Interface</title>
-  <link rel="stylesheet" href="styles.css?v=2.3">
+  <link rel="stylesheet" href="styles.css?v=2.4">
   <!-- Local self-contained Three.js library -->
   <script src="three.min.js"></script>
 </head>
@@ -90,37 +90,469 @@
         <strong>TACTICAL SCHEMATIC MAP FALLBACK</strong>
         <span id="schematic-banner-desc">Google Maps API key not configured or offline. Showing vector schematic fallback.</span>
       </div>
-      <svg id="schematic-regional-svg" class="regional-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
+      <svg id="schematic-regional-svg" class="regional-svg" viewBox="0 0 2400 1600" preserveAspectRatio="xMidYMid meet">
         <defs>
+          <!-- Minor Tactical Grid -->
           <pattern id="sec-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.035)" stroke-width="1" />
           </pattern>
+          <!-- Major Sector Grid -->
+          <pattern id="major-grid" width="200" height="200" patternUnits="userSpaceOnUse">
+            <rect width="200" height="200" fill="none" stroke="rgba(88,166,255,0.05)" stroke-width="1.5" />
+            <circle cx="200" cy="200" r="2" fill="rgba(88,166,255,0.2)" />
+          </pattern>
+          <!-- Blocked Hazard Diagonal Stripe Pattern -->
+          <pattern id="hazard-pattern" width="20" height="20" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="20" stroke="#f85149" stroke-width="8" opacity="0.65" />
+            <line x1="10" y1="0" x2="10" y2="20" stroke="#220b0b" stroke-width="12" />
+          </pattern>
+          <!-- Water Ripple Pattern -->
+          <pattern id="sea-waves" width="60" height="30" patternUnits="userSpaceOnUse">
+            <path d="M 0 15 Q 15 5 30 15 T 60 15" fill="none" stroke="rgba(56,139,253,0.08)" stroke-width="1" />
+          </pattern>
+
+          <!-- ANIMATED VEHICLE MOTION PATHS -->
+          <!-- WEH Northbound Fast Flow Path -->
+          <path id="path-weh-north" d="M 1695 1600 L 1665 1000 L 1635 700 L 1635 0" />
+          <!-- WEH Southbound Flow Path -->
+          <path id="path-weh-south" d="M 1645 0 L 1645 700 L 1675 1000 L 1705 1600" />
+          <!-- SV Road Northbound Path -->
+          <path id="path-sv-north" d="M 865 1600 L 875 1150 L 885 750 L 885 0" />
+          <!-- SV Road Southbound Path -->
+          <path id="path-sv-south" d="M 875 0 L 875 750 L 865 1150 L 855 1600" />
+          <!-- Juhu Tara Road Stream Path -->
+          <path id="path-juhu-stream" d="M 345 0 L 355 450 L 370 1050 L 385 1600" />
+          <!-- Tilak Road East-West Path -->
+          <path id="path-tilak-stream" d="M 1150 780 L 880 780 L 620 780 L 360 780" />
+          <!-- Emergency Recon Detour Path (Hanuman Road bypass around Station Rd collapse) -->
+          <path id="path-detour-recon" d="M 1160 520 L 1410 520 L 1410 780 L 1640 780 L 1950 820" />
+          <!-- Airport North Perimeter Flow -->
+          <path id="path-sahar-stream" d="M 1640 720 L 1820 620 L 2150 620" />
         </defs>
-        <rect width="1000" height="600" fill="#090e13" />
-        <rect width="1000" height="600" fill="url(#sec-grid)" />
-        <!-- Western Railway Line (Vile Parle Station Central Corridor) -->
-        <path d="M 450 0 L 450 600" fill="none" stroke="#25384e" stroke-width="8" stroke-dasharray="16 8" />
-        <!-- Western Express Highway (WEH Corridor East) -->
-        <path d="M 240 0 L 290 600" fill="none" stroke="#1f364d" stroke-width="14" />
-        <!-- Irla Nullah & Drainage Channels -->
-        <path d="M 0 200 C 300 240 500 120 750 280 S 1000 320 1000 320" fill="none" stroke="#13202e" stroke-width="30" />
-        <path d="M 0 200 C 300 240 500 120 750 280 S 1000 320 1000 320" fill="none" stroke="#1a2d40" stroke-width="12" />
-        <!-- Milan Subway Arterial East-West Connector -->
-        <path d="M 0 380 L 1000 380" fill="none" stroke="#1b293a" stroke-width="6" />
-        <!-- Sector Boundary Text Labels -->
-        <text x="465" y="45" fill="#486581" font-size="11" font-weight="700" letter-spacing="1">WESTERN RAILWAY (VILE PARLE STN)</text>
-        <text x="250" y="580" fill="#486581" font-size="11" font-weight="700" letter-spacing="1">WESTERN EXPRESS HIGHWAY (WEH)</text>
-        <text x="50" y="370" fill="#334e68" font-size="10" font-weight="600">MILAN SUBWAY CONNECTOR</text>
-        <text x="760" y="550" fill="#334e68" font-size="10" font-weight="600">VILE PARLE WEST (JUHU LINK)</text>
+
+        <!-- BASE CANVAS & GRID -->
+        <rect width="2400" height="1600" fill="#070b0e" />
+        <rect width="2400" height="1600" fill="url(#sec-grid)" />
+        <rect width="2400" height="1600" fill="url(#major-grid)" />
+
+        <!-- =========================================================================
+             TERRAIN, WATERWAYS & AIRFIELDS
+             ========================================================================= -->
+        <!-- Arabian Sea Coastline (Far West) -->
+        <path d="M 0 0 L 170 0 C 190 350 150 700 180 1050 C 200 1300 160 1600 160 1600 L 0 1600 Z" fill="#081420" />
+        <path d="M 0 0 L 170 0 C 190 350 150 700 180 1050 C 200 1300 160 1600 160 1600 L 0 1600 Z" fill="url(#sea-waves)" />
+        <path d="M 170 0 C 190 350 150 700 180 1050 C 200 1300 160 1600 160 1600" fill="none" stroke="#1f6feb" stroke-width="3" opacity="0.45" />
+
+        <!-- Juhu Beach Sand Ribbon -->
+        <path d="M 170 0 C 190 350 150 700 180 1050 C 200 1300 160 1600 160 1600 L 250 1600 C 270 1300 240 1050 250 700 C 260 350 245 0 245 0 Z" fill="#131920" />
+        <text x="210" y="800" fill="#2d455d" font-size="12" font-weight="700" letter-spacing="4" transform="rotate(-90 210 800)">JUHU BEACH COASTLINE</text>
+
+        <!-- Juhu Aerodrome / Flying Club Ground -->
+        <rect x="440" y="940" width="360" height="360" rx="12" fill="#0b1622" stroke="#1c3044" stroke-width="2" />
+        <!-- Aerodrome Runways -->
+        <line x1="460" y1="960" x2="780" y2="1280" stroke="#172635" stroke-width="16" />
+        <line x1="460" y1="960" x2="780" y2="1280" stroke="#2c455e" stroke-width="2" stroke-dasharray="12 8" />
+        <line x1="780" y1="960" x2="460" y2="1280" stroke="#172635" stroke-width="16" />
+        <text x="620" y="1120" text-anchor="middle" fill="#304a64" font-size="11" font-weight="700" letter-spacing="1">JUHU AERODROME (VAJJ)</text>
+
+        <!-- CSMIA Mumbai International Airport Complex (East) -->
+        <rect x="1740" y="760" width="640" height="820" rx="16" fill="#0a131c" stroke="#1d344a" stroke-width="2" />
+        <!-- Main Runway 09/27 (East-West) -->
+        <line x1="1760" y1="1040" x2="2380" y2="1040" stroke="#182736" stroke-width="32" />
+        <line x1="1770" y1="1040" x2="2370" y2="1040" stroke="#3a5675" stroke-width="3" stroke-dasharray="24 16" />
+        <text x="1780" y="1045" fill="#58a6ff" font-size="11" font-weight="800">09</text>
+        <text x="2350" y="1045" fill="#58a6ff" font-size="11" font-weight="800">27</text>
+        <!-- Secondary Runway 14/32 (Cross Runway) -->
+        <line x1="1870" y1="800" x2="2280" y2="1480" stroke="#182736" stroke-width="24" />
+        <line x1="1880" y1="810" x2="2270" y2="1470" stroke="#324c68" stroke-width="2.5" stroke-dasharray="18 12" />
+        <!-- Domestic Terminal 1 Apron -->
+        <rect x="1760" y="1160" width="180" height="150" rx="8" fill="#12202e" stroke="#253c52" />
+        <text x="1850" y="1240" text-anchor="middle" fill="#4d6f91" font-size="10" font-weight="700">TERMINAL 1 (DOMESTIC)</text>
+        <text x="2070" y="930" text-anchor="middle" fill="#324d68" font-size="13" font-weight="800" letter-spacing="2">CSMIA AIRPORT COMPLEX</text>
+
+        <!-- Irla Nullah Canal & Waterway -->
+        <path d="M 780 0 C 800 250 830 500 810 650 C 790 800 700 950 640 1150 C 580 1350 440 1480 370 1600" fill="none" stroke="#0e1d2a" stroke-width="26" />
+        <path d="M 780 0 C 800 250 830 500 810 650 C 790 800 700 950 640 1150 C 580 1350 440 1480 370 1600" fill="none" stroke="#162e42" stroke-width="12" />
+        <text x="760" y="380" fill="#2d4963" font-size="10" font-weight="700" transform="rotate(78 760 380)">IRLA NULLAH DRAINAGE CANAL</text>
+
+        <!-- =========================================================================
+             SECONDARY / TERTIARY STREET GRID
+             ========================================================================= -->
+        <g class="secondary-streets" stroke="#111c26" stroke-width="8" fill="none">
+          <!-- Vile Parle East Residential Grid -->
+          <path d="M 1250 200 L 1250 1100" />
+          <path d="M 1330 200 L 1330 1100" />
+          <path d="M 1480 200 L 1480 1100" />
+          <path d="M 1580 200 L 1580 1100" />
+          <path d="M 1160 400 L 1640 400" />
+          <path d="M 1160 620 L 1640 620" />
+          <path d="M 1160 900 L 1640 900" />
+          <path d="M 1160 1000 L 1640 1000" />
+          <!-- Vile Parle West & JVPD Residential Grid -->
+          <path d="M 480 0 L 480 940" />
+          <path d="M 720 0 L 720 940" />
+          <path d="M 800 0 L 800 940" />
+          <path d="M 350 140 L 880 140" />
+          <path d="M 350 260 L 880 260" />
+          <path d="M 350 420 L 880 420" />
+          <path d="M 350 560 L 880 560" />
+          <path d="M 350 700 L 880 700" />
+          <path d="M 350 880 L 880 880" />
+          <!-- Santacruz Urban Grid -->
+          <path d="M 370 1200 L 870 1200" />
+          <path d="M 370 1400 L 870 1400" />
+          <path d="M 500 1100 L 500 1600" />
+          <path d="M 720 1100 L 720 1600" />
+          <path d="M 1250 1100 L 1250 1600" />
+          <path d="M 1450 1100 L 1450 1600" />
+          <path d="M 1160 1250 L 1680 1250" />
+          <path d="M 1160 1500 L 1680 1500" />
+        </g>
+
+        <!-- =========================================================================
+             MAJOR ARTERIAL ROAD NETWORK (Primary Highways & Avenues)
+             ========================================================================= -->
+        <!-- WESTERN RAILWAY MAIN CORRIDOR (4 TRACKS) -->
+        <rect x="1147" y="0" width="26" height="1600" fill="#101b26" stroke="#1d2f42" stroke-width="1.5" />
+        <g stroke="#3a5879" stroke-width="1.8">
+          <line x1="1151" y1="0" x2="1151" y2="1600" />
+          <line x1="1156" y1="0" x2="1156" y2="1600" />
+          <line x1="1164" y1="0" x2="1164" y2="1600" />
+          <line x1="1169" y1="0" x2="1169" y2="1600" />
+        </g>
+        <!-- Railway Sleepers -->
+        <line x1="1148" y1="0" x2="1172" y2="1600" stroke="#1b2a3a" stroke-width="4" stroke-dasharray="2 6" />
+
+        <!-- Railway Stations -->
+        <!-- Andheri Station (Top) -->
+        <rect x="1140" y="120" width="40" height="60" rx="4" fill="#1b2e40" stroke="#58a6ff" stroke-width="1.5" />
+        <text x="1130" y="155" text-anchor="end" fill="#79c0ff" font-size="10" font-weight="700">ANDHERI STN</text>
+        <!-- Vile Parle Station (Center) -->
+        <rect x="1136" y="750" width="48" height="70" rx="4" fill="#1c334a" stroke="#58a6ff" stroke-width="2" />
+        <text x="1126" y="790" text-anchor="end" fill="#79c0ff" font-size="11" font-weight="800">VILE PARLE STN</text>
+        <!-- Santacruz Station (South) -->
+        <rect x="1140" y="1390" width="40" height="60" rx="4" fill="#1b2e40" stroke="#58a6ff" stroke-width="1.5" />
+        <text x="1130" y="1425" text-anchor="end" fill="#79c0ff" font-size="10" font-weight="700">SANTACRUZ STN</text>
+
+        <!-- MAJOR ROADS (Bed + Surface + Dividers) -->
+        <!-- 1. Western Express Highway (WEH / NH 48) -->
+        <path d="M 1640 0 L 1640 700 L 1670 1000 L 1700 1600" fill="none" stroke="#192837" stroke-width="32" stroke-linecap="round" />
+        <path d="M 1640 0 L 1640 700 L 1670 1000 L 1700 1600" fill="none" stroke="#253a4f" stroke-width="24" stroke-linecap="round" />
+        <path d="M 1640 0 L 1640 700 L 1670 1000 L 1700 1600" fill="none" stroke="#486581" stroke-width="1.5" stroke-dasharray="14 10" />
+
+        <!-- 2. Swami Vivekananda (SV) Road -->
+        <path d="M 880 0 L 880 750 L 870 1150 L 860 1600" fill="none" stroke="#182736" stroke-width="24" stroke-linecap="round" />
+        <path d="M 880 0 L 880 750 L 870 1150 L 860 1600" fill="none" stroke="#22364a" stroke-width="18" stroke-linecap="round" />
+        <path d="M 880 0 L 880 750 L 870 1150 L 860 1600" fill="none" stroke="#38536f" stroke-width="1" stroke-dasharray="10 8" />
+
+        <!-- 3. Juhu Tara Road / Coastal Corridor -->
+        <path d="M 350 0 L 360 450 L 375 1050 L 390 1600" fill="none" stroke="#182736" stroke-width="20" stroke-linecap="round" />
+        <path d="M 350 0 L 360 450 L 375 1050 L 390 1600" fill="none" stroke="#223547" stroke-width="15" stroke-linecap="round" />
+
+        <!-- 4. Gulmohar Road & V.M. Road (JVPD Scheme Spine) -->
+        <path d="M 620 0 L 620 900 L 640 1600" fill="none" stroke="#172432" stroke-width="20" stroke-linecap="round" />
+        <path d="M 620 0 L 620 900 L 640 1600" fill="none" stroke="#213345" stroke-width="15" stroke-linecap="round" />
+
+        <!-- 5. Milan Subway & Arterial Connector (East-West) -->
+        <path d="M 375 1100 L 630 1100 L 870 1100 L 1160 1100 L 1670 1100 L 2050 1100" fill="none" stroke="#192a3a" stroke-width="22" stroke-linecap="round" />
+        <path d="M 375 1100 L 630 1100 L 870 1100 L 1160 1100 L 1670 1100 L 2050 1100" fill="none" stroke="#24384d" stroke-width="16" stroke-linecap="round" />
+
+        <!-- 6. Nehru Road (Station East to Airport Corridor) -->
+        <path d="M 1160 780 L 1640 780 L 1950 820 L 2250 860" fill="none" stroke="#192a3a" stroke-width="22" stroke-linecap="round" />
+        <path d="M 1160 780 L 1640 780 L 1950 820 L 2250 860" fill="none" stroke="#24384d" stroke-width="16" stroke-linecap="round" />
+
+        <!-- 7. Tilak Road & Bajaj Road (Station West to Juhu Beach) -->
+        <path d="M 360 780 L 620 780 L 880 780 L 1160 780" fill="none" stroke="#192a3a" stroke-width="20" stroke-linecap="round" />
+        <path d="M 360 780 L 620 780 L 880 780 L 1160 780" fill="none" stroke="#24384d" stroke-width="15" stroke-linecap="round" />
+
+        <!-- 8. Captain Gore Flyover & Parleshwar Bridge -->
+        <path d="M 880 480 L 1160 480 L 1410 480 L 1640 480" fill="none" stroke="#192a3a" stroke-width="18" stroke-linecap="round" />
+        <path d="M 880 480 L 1160 480 L 1410 480 L 1640 480" fill="none" stroke="#253a4e" stroke-width="14" stroke-linecap="round" />
+
+        <!-- 9. Irla Lane / Prime Mall Link -->
+        <path d="M 620 640 L 880 640" fill="none" stroke="#182736" stroke-width="16" stroke-linecap="round" />
+        <path d="M 620 640 L 880 640" fill="none" stroke="#223547" stroke-width="12" stroke-linecap="round" />
+
+        <!-- 10. JVPD 10th Road (Landslide Area) -->
+        <path d="M 350 340 L 620 340 L 880 340" fill="none" stroke="#182736" stroke-width="16" stroke-linecap="round" />
+        <path d="M 350 340 L 620 340 L 880 340" fill="none" stroke="#223547" stroke-width="12" stroke-linecap="round" />
+
+        <!-- 11. Hanuman Road & Subhash Road (Vile Parle East) -->
+        <path d="M 1410 180 L 1410 1050" fill="none" stroke="#172433" stroke-width="16" stroke-linecap="round" />
+        <path d="M 1410 180 L 1410 1050" fill="none" stroke="#223446" stroke-width="12" stroke-linecap="round" />
+        <path d="M 1520 120 L 1520 1000" fill="none" stroke="#172433" stroke-width="16" stroke-linecap="round" />
+        <path d="M 1520 120 L 1520 1000" fill="none" stroke="#223446" stroke-width="12" stroke-linecap="round" />
+
+        <!-- 12. Domestic Airport Approach Expressway -->
+        <path d="M 1670 1100 C 1800 1100 1900 1200 2020 1220 L 2300 1240" fill="none" stroke="#182736" stroke-width="18" stroke-linecap="round" />
+        <path d="M 1670 1100 C 1800 1100 1900 1200 2020 1220 L 2300 1240" fill="none" stroke="#22364a" stroke-width="13" stroke-linecap="round" />
+
+        <!-- 13. Bamanwada / Sahar Cargo Road -->
+        <path d="M 1640 720 L 1800 620 L 2150 620" fill="none" stroke="#182736" stroke-width="16" stroke-linecap="round" />
+        <path d="M 1640 720 L 1800 620 L 2150 620" fill="none" stroke="#223447" stroke-width="12" stroke-linecap="round" />
+
+        <!-- =========================================================================
+             LIVE TRAFFIC FLOW LAYER (Clear Green, Slow Amber, Blocked Red)
+             ========================================================================= -->
+        <g class="traffic-flow-layer" stroke-linecap="round">
+          <!-- 🟢 FLOWING SECTORS (Free movement) -->
+          <!-- WEH North Free Flow -->
+          <path d="M 1640 0 L 1640 680" fill="none" stroke="#2ea043" stroke-width="4.5" opacity="0.85" />
+          <!-- WEH South Free Flow -->
+          <path d="M 1680 1250 L 1700 1600" fill="none" stroke="#2ea043" stroke-width="4.5" opacity="0.85" />
+          <!-- SV Road North Free Flow -->
+          <path d="M 880 0 L 880 540" fill="none" stroke="#2ea043" stroke-width="4" opacity="0.85" />
+          <!-- SV Road South Free Flow -->
+          <path d="M 865 1250 L 860 1600" fill="none" stroke="#2ea043" stroke-width="4" opacity="0.85" />
+          <!-- Juhu Tara Road Full Flow -->
+          <path d="M 350 0 L 360 450 L 375 1050 L 390 1600" fill="none" stroke="#2ea043" stroke-width="3.5" opacity="0.8" />
+          <!-- Tilak Road Moving Flow -->
+          <path d="M 360 780 L 880 780" fill="none" stroke="#2ea043" stroke-width="3.5" opacity="0.8" />
+          <!-- Captain Gore Flyover Flow -->
+          <path d="M 880 480 L 1640 480" fill="none" stroke="#2ea043" stroke-width="3.5" opacity="0.8" />
+          <!-- Sahar Airport Access Flow -->
+          <path d="M 1640 720 L 2150 620" fill="none" stroke="#2ea043" stroke-width="3" opacity="0.85" />
+
+          <!-- 🟠 CONGESTED SECTORS (Slow bumper-to-bumper crawl) -->
+          <!-- SV Road at Irla Market Bottleneck -->
+          <path d="M 880 540 L 880 750" fill="none" stroke="#d29922" stroke-width="5" opacity="0.9" />
+          <!-- Nehru Road Detour Crawl -->
+          <path d="M 1410 520 L 1410 780 L 1640 780 L 1800 800" fill="none" stroke="#d29922" stroke-width="4.5" opacity="0.9" />
+          <!-- JVPD 10th Road Crawl near excavation -->
+          <path d="M 350 340 L 620 340" fill="none" stroke="#d29922" stroke-width="4" opacity="0.85" />
+          <!-- WEH Approaching Airport Flare -->
+          <path d="M 1640 680 L 1655 880" fill="none" stroke="#d29922" stroke-width="5.5" opacity="0.9" />
+          <!-- Milan East Approach Queue -->
+          <path d="M 1260 1100 L 1500 1100" fill="none" stroke="#d29922" stroke-width="5" opacity="0.9" />
+          <!-- Milan West Approach Queue -->
+          <path d="M 940 1100 L 1060 1100" fill="none" stroke="#d29922" stroke-width="5" opacity="0.9" />
+
+          <!-- =========================================================================
+               🔴 BLOCKED ROAD SEGMENTS & INCIDENT CHOKEPOINTS
+               ========================================================================= -->
+          <!-- BLOCK 1: MILAN SUBWAY UNDERPASS (FLOOD INUNDATION) -->
+          <g class="blocked-segment" id="block-milan-subway">
+            <!-- Pulsing red hazard aura -->
+            <path d="M 1060 1100 L 1260 1100" fill="none" stroke="#f85149" stroke-width="16" class="road-blocked-glow" opacity="0.4" />
+            <!-- Diagonal Hazard Stripe Line -->
+            <path d="M 1060 1100 L 1260 1100" fill="none" stroke="#f85149" stroke-width="12" class="hazard-stripe-line" />
+            <!-- Barricade icons -->
+            <circle cx="1060" cy="1100" r="10" fill="#210808" stroke="#f85149" stroke-width="2" class="warning-beacon" />
+            <text x="1060" y="1104" text-anchor="middle" font-size="11">🚧</text>
+            <circle cx="1260" cy="1100" r="10" fill="#210808" stroke="#f85149" stroke-width="2" class="warning-beacon" />
+            <text x="1260" y="1104" text-anchor="middle" font-size="11">🚧</text>
+            <!-- Warning Callout Banner -->
+            <rect x="1050" y="1064" width="220" height="22" rx="4" fill="rgba(26,6,6,0.92)" stroke="#f85149" stroke-width="1.5" />
+            <text x="1160" y="1079" text-anchor="middle" fill="#ff7b72" font-size="9" font-weight="800">⛔ MILAN SUBWAY BLOCKED (+1.2M FLOOD)</text>
+            <!-- Stationary queued cars -->
+            <circle cx="1035" cy="1100" r="3.5" fill="#f85149" />
+            <circle cx="1015" cy="1100" r="3.5" fill="#f85149" />
+            <circle cx="995" cy="1100" r="3.5" fill="#d29922" />
+            <circle cx="1285" cy="1100" r="3.5" fill="#f85149" />
+            <circle cx="1305" cy="1100" r="3.5" fill="#f85149" />
+            <circle cx="1325" cy="1100" r="3.5" fill="#d29922" />
+          </g>
+
+          <!-- BLOCK 2: STATION ROAD ARCADE CORRIDOR (STRUCTURAL PANCAKE) -->
+          <g class="blocked-segment" id="block-station-road">
+            <path d="M 1160 780 L 1320 780" fill="none" stroke="#f85149" stroke-width="16" class="road-blocked-glow" opacity="0.4" />
+            <path d="M 1160 780 L 1320 780" fill="none" stroke="#f85149" stroke-width="12" class="hazard-stripe-line" />
+            <circle cx="1160" cy="780" r="10" fill="#210808" stroke="#f85149" stroke-width="2" class="warning-beacon" />
+            <text x="1160" y="784" text-anchor="middle" font-size="11">🚧</text>
+            <circle cx="1320" cy="780" r="10" fill="#210808" stroke="#f85149" stroke-width="2" class="warning-beacon" />
+            <text x="1320" y="784" text-anchor="middle" font-size="11">🚧</text>
+            <rect x="1150" y="744" width="230" height="22" rx="4" fill="rgba(26,6,6,0.92)" stroke="#f85149" stroke-width="1.5" />
+            <text x="1265" y="759" text-anchor="middle" fill="#ff7b72" font-size="9" font-weight="800">⛔ STATION ROAD CLOSED (COLLAPSE CORDON)</text>
+            <!-- Emergency response vehicle markers -->
+            <circle cx="1345" cy="780" r="4.5" fill="#388bfd" stroke="#fff" stroke-width="1" class="warning-beacon" />
+            <circle cx="1360" cy="780" r="3.5" fill="#f85149" />
+          </g>
+
+          <!-- BLOCK 3: WEH AIRPORT INTERCHANGE RAMP (TRANSFORMER FIRE) -->
+          <g class="blocked-segment" id="block-weh-interchange">
+            <path d="M 1645 880 L 1665 1020" fill="none" stroke="#f85149" stroke-width="16" class="road-blocked-glow" opacity="0.4" />
+            <path d="M 1645 880 L 1665 1020" fill="none" stroke="#f85149" stroke-width="11" class="hazard-stripe-line" />
+            <circle cx="1645" cy="880" r="9" fill="#210808" stroke="#f85149" stroke-width="2" class="warning-beacon" />
+            <text x="1645" y="884" text-anchor="middle" font-size="10">🚧</text>
+            <rect x="1640" y="930" width="210" height="22" rx="4" fill="rgba(26,6,6,0.92)" stroke="#f85149" stroke-width="1.5" />
+            <text x="1745" y="945" text-anchor="middle" fill="#ff7b72" font-size="9" font-weight="800">⛔ WEH RAMP BLOCKED (FIRE CORDON)</text>
+          </g>
+
+          <!-- BLOCK 4: IRLA MARKET CULVERT APPROACH (OVERFLOW) -->
+          <g class="blocked-segment" id="block-irla-culvert">
+            <path d="M 780 640 L 880 640" fill="none" stroke="#f85149" stroke-width="10" class="hazard-stripe-line" />
+            <circle cx="780" cy="640" r="8" fill="#210808" stroke="#f85149" stroke-width="1.5" />
+            <text x="780" y="643" text-anchor="middle" font-size="9">⚠</text>
+            <rect x="730" y="612" width="160" height="18" rx="3" fill="rgba(26,6,6,0.9)" stroke="#d29922" stroke-width="1" />
+            <text x="810" y="625" text-anchor="middle" fill="#e3b341" font-size="8.5" font-weight="700">⚠ IRLA ACCESS RESTRICTED</text>
+          </g>
+
+          <!-- BLOCK 5: BAMANWADA HILLOCK SERVICE ROAD (WALL SUBSIDENCE) -->
+          <g class="blocked-segment" id="block-bamanwada">
+            <path d="M 1720 720 L 1830 720" fill="none" stroke="#f85149" stroke-width="10" class="hazard-stripe-line" />
+            <circle cx="1720" cy="720" r="8" fill="#210808" stroke="#f85149" stroke-width="1.5" />
+            <text x="1720" y="723" text-anchor="middle" font-size="9">⚠</text>
+            <rect x="1710" y="694" width="160" height="18" rx="3" fill="rgba(26,6,6,0.9)" stroke="#d29922" stroke-width="1" />
+            <text x="1790" y="707" text-anchor="middle" fill="#e3b341" font-size="8.5" font-weight="700">⚠ SERVICE LANE 1 BLOCKED</text>
+          </g>
+        </g>
+
+        <!-- =========================================================================
+             ANIMATED MOVING TRAFFIC PARTICLES (60FPS SVG Animation)
+             ========================================================================= -->
+        <g class="traffic-moving-vehicles">
+          <!-- WEH Northbound Stream (Moving North) -->
+          <circle r="4" fill="#58a6ff" opacity="0.95">
+            <animateMotion dur="7s" repeatCount="indefinite">
+              <mpath href="#path-weh-north" />
+            </animateMotion>
+          </circle>
+          <circle r="3.5" fill="#3fb950" opacity="0.9">
+            <animateMotion dur="7s" begin="2.2s" repeatCount="indefinite">
+              <mpath href="#path-weh-north" />
+            </animateMotion>
+          </circle>
+          <circle r="3.5" fill="#ffffff" opacity="0.95">
+            <animateMotion dur="7s" begin="4.6s" repeatCount="indefinite">
+              <mpath href="#path-weh-north" />
+            </animateMotion>
+          </circle>
+
+          <!-- WEH Southbound Stream (Moving South) -->
+          <circle r="4" fill="#3fb950" opacity="0.95">
+            <animateMotion dur="8.5s" repeatCount="indefinite">
+              <mpath href="#path-weh-south" />
+            </animateMotion>
+          </circle>
+          <circle r="3.5" fill="#ffffff" opacity="0.9">
+            <animateMotion dur="8.5s" begin="3s" repeatCount="indefinite">
+              <mpath href="#path-weh-south" />
+            </animateMotion>
+          </circle>
+          <circle r="3.5" fill="#58a6ff" opacity="0.9">
+            <animateMotion dur="8.5s" begin="5.8s" repeatCount="indefinite">
+              <mpath href="#path-weh-south" />
+            </animateMotion>
+          </circle>
+
+          <!-- SV Road Northbound Stream -->
+          <circle r="3.5" fill="#3fb950" opacity="0.9">
+            <animateMotion dur="10s" repeatCount="indefinite">
+              <mpath href="#path-sv-north" />
+            </animateMotion>
+          </circle>
+          <circle r="3.5" fill="#ffffff" opacity="0.85">
+            <animateMotion dur="10s" begin="4.8s" repeatCount="indefinite">
+              <mpath href="#path-sv-north" />
+            </animateMotion>
+          </circle>
+
+          <!-- SV Road Southbound Stream -->
+          <circle r="3.5" fill="#3fb950" opacity="0.9">
+            <animateMotion dur="11s" repeatCount="indefinite">
+              <mpath href="#path-sv-south" />
+            </animateMotion>
+          </circle>
+          <circle r="3.5" fill="#58a6ff" opacity="0.85">
+            <animateMotion dur="11s" begin="5.5s" repeatCount="indefinite">
+              <mpath href="#path-sv-south" />
+            </animateMotion>
+          </circle>
+
+          <!-- Juhu Tara Road Stream -->
+          <circle r="3.5" fill="#3fb950" opacity="0.9">
+            <animateMotion dur="12s" repeatCount="indefinite">
+              <mpath href="#path-juhu-stream" />
+            </animateMotion>
+          </circle>
+          <circle r="3.5" fill="#ffffff" opacity="0.85">
+            <animateMotion dur="12s" begin="6s" repeatCount="indefinite">
+              <mpath href="#path-juhu-stream" />
+            </animateMotion>
+          </circle>
+
+          <!-- Tilak Road East-to-West Stream -->
+          <circle r="3.5" fill="#3fb950" opacity="0.9">
+            <animateMotion dur="9s" repeatCount="indefinite">
+              <mpath href="#path-tilak-stream" />
+            </animateMotion>
+          </circle>
+          <circle r="3.5" fill="#ffffff" opacity="0.85">
+            <animateMotion dur="9s" begin="4.5s" repeatCount="indefinite">
+              <mpath href="#path-tilak-stream" />
+            </animateMotion>
+          </circle>
+
+          <!-- Emergency Response Recon Vehicle with Flashing Beacon (Bypassing Station Rd via Hanuman Rd) -->
+          <circle r="5" fill="#388bfd" stroke="#ffffff" stroke-width="1.5" class="warning-beacon">
+            <animateMotion dur="14s" repeatCount="indefinite">
+              <mpath href="#path-detour-recon" />
+            </animateMotion>
+          </circle>
+
+          <!-- Sahar Airport Access Stream -->
+          <circle r="3.5" fill="#58a6ff" opacity="0.9">
+            <animateMotion dur="8s" repeatCount="indefinite">
+              <mpath href="#path-sahar-stream" />
+            </animateMotion>
+          </circle>
+        </g>
+
+        <!-- =========================================================================
+             TACTICAL ROAD & DISTRICT LABELS (Crisp contrast badges)
+             ========================================================================= -->
+        <!-- Major Highway Labels -->
+        <rect x="1560" y="40" width="220" height="24" rx="4" fill="rgba(13,22,32,0.92)" stroke="#2b4561" />
+        <text x="1670" y="56" text-anchor="middle" fill="#79c0ff" font-size="10.5" font-weight="800" letter-spacing="1">WESTERN EXPRESS HIGHWAY</text>
+
+        <rect x="800" y="40" width="160" height="24" rx="4" fill="rgba(13,22,32,0.92)" stroke="#2b4561" />
+        <text x="880" y="56" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="800">SV ROAD (WEST)</text>
+
+        <rect x="270" y="40" width="160" height="24" rx="4" fill="rgba(13,22,32,0.92)" stroke="#2b4561" />
+        <text x="350" y="56" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="800">JUHU TARA ROAD</text>
+
+        <!-- East-West Arterial Labels -->
+        <rect x="420" y="768" width="180" height="22" rx="4" fill="rgba(13,22,32,0.9)" stroke="#22374c" />
+        <text x="510" y="783" text-anchor="middle" fill="#a5d6ff" font-size="9.5" font-weight="700">TILAK RD / BAJAJ RD</text>
+
+        <rect x="1410" y="768" width="160" height="22" rx="4" fill="rgba(13,22,32,0.9)" stroke="#22374c" />
+        <text x="1490" y="783" text-anchor="middle" fill="#a5d6ff" font-size="9.5" font-weight="700">NEHRU RD (AIRPORT LINK)</text>
+
+        <rect x="1000" y="468" width="180" height="22" rx="4" fill="rgba(13,22,32,0.9)" stroke="#22374c" />
+        <text x="1090" y="483" text-anchor="middle" fill="#a5d6ff" font-size="9.5" font-weight="700">CAPTAIN GORE FLYOVER</text>
+
+        <!-- District Watermark Labels -->
+        <text x="560" y="240" fill="#243b52" font-size="18" font-weight="800" letter-spacing="3">JUHU SCHEME (JVPD)</text>
+        <text x="760" y="850" fill="#243b52" font-size="18" font-weight="800" letter-spacing="3">VILE PARLE (WEST)</text>
+        <text x="1350" y="350" fill="#243b52" font-size="18" font-weight="800" letter-spacing="3">VILE PARLE (EAST)</text>
+        <text x="650" y="1450" fill="#243b52" font-size="18" font-weight="800" letter-spacing="3">SANTACRUZ (WEST)</text>
+        <text x="1450" y="1450" fill="#243b52" font-size="18" font-weight="800" letter-spacing="3">SANTACRUZ (EAST)</text>
+
+        <!-- INCIDENT PINS CONTAINER (Populated dynamically) -->
         <g id="schematic-incident-pins"></g>
       </svg>
     </div>
 
-    <!-- MAP OVERLAY CONTROLS -->
+    <!-- MAP OVERLAY CONTROLS & LIVE TRAFFIC MONITOR -->
     <div class="map-floating-bar">
+      <!-- Live Incident Counter -->
       <div class="active-incidents-summary" id="incidents-summary-pill">
-        4 Fictional Incidents Displayed
+        8 Incidents Displayed
       </div>
+
+      <!-- Live Traffic Flow Monitor -->
+      <div class="traffic-status-pill" id="traffic-status-pill" title="Real-time road transit status">
+        <span class="dot-pulse"></span>
+        <span>Traffic: <b>3 Blocked</b> · 4 Flowing</span>
+      </div>
+
+      <!-- Traffic Legend -->
+      <div class="traffic-legend-pill" aria-label="Traffic legend">
+        <span class="t-item"><span class="t-bar clear"></span> Free Flow</span>
+        <span class="t-item"><span class="t-bar slow"></span> Congested</span>
+        <span class="t-item"><span class="t-bar blocked"></span> Blocked</span>
+      </div>
+
       <button class="btn btn-xs btn-outline map-mode-btn" id="btn-toggle-map-mode" type="button" title="Switch between Google Maps and Schematic View">
         🗺️ Tactical Schematic View
       </button>
@@ -498,6 +930,6 @@
     <span id="toast-msg">Action performed.</span>
   </aside>
 
-  <script type="module" src="app.js?v=2.3"></script>
+  <script type="module" src="app.js?v=2.4"></script>
 </body>
 </html>

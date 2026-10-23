@@ -351,6 +351,104 @@ body {
   color: #fff;
 }
 
+/* LIVE TRAFFIC MONITOR & LEGEND PILLS */
+.traffic-status-pill {
+  background: rgba(17, 26, 36, 0.92);
+  border: 1px solid var(--border-subtle);
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #c9d1d9;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.traffic-status-pill .dot-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f85149;
+  box-shadow: 0 0 8px #f85149;
+  animation: traffic-blink 1.2s infinite;
+}
+
+@keyframes traffic-blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
+}
+
+.traffic-legend-pill {
+  background: rgba(17, 26, 36, 0.92);
+  border: 1px solid var(--border-subtle);
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  color: #8b949e;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.t-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.t-bar {
+  width: 12px;
+  height: 3.5px;
+  border-radius: 2px;
+}
+
+.t-bar.clear {
+  background: #3fb950;
+  box-shadow: 0 0 5px rgba(63, 185, 80, 0.8);
+}
+
+.t-bar.slow {
+  background: #d29922;
+  box-shadow: 0 0 5px rgba(210, 153, 34, 0.8);
+}
+
+.t-bar.blocked {
+  background: #f85149;
+  box-shadow: 0 0 5px rgba(248, 81, 73, 0.9);
+}
+
+/* BLOCKED ROAD & HAZARD ANIMATIONS */
+@keyframes hazard-pulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; filter: drop-shadow(0 0 10px rgba(248, 81, 73, 0.95)); }
+}
+
+.road-blocked-glow {
+  animation: hazard-pulse 1.8s infinite ease-in-out;
+}
+
+.hazard-stripe-line {
+  stroke-dasharray: 12 8;
+  animation: stripe-march 1.8s linear infinite;
+}
+
+@keyframes stripe-march {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: 20; }
+}
+
+.warning-beacon {
+  animation: beacon-flash 1s infinite alternate ease-in-out;
+}
+
+@keyframes beacon-flash {
+  from { filter: drop-shadow(0 0 2px #d29922); }
+  to { filter: drop-shadow(0 0 9px #f85149); }
+}
+
 /* FLOATING ZOOM CONTROLS ON MAP */
 .map-zoom-controls {
   position: absolute;

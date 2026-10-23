@@ -80,7 +80,7 @@ function createInitialState() {
         icon: '🏢',
         lat: 19.0988,
         lng: 72.8468,
-        schematicPos: { x: 440, y: 270 },
+        schematicPos: { x: 1280, y: 780 },
         location: 'Nehru Road, Station Perimeter, Vile Parle East, Mumbai',
         reportTime: 'T-01:45',
         lastUpdate: 'T+00:00',
@@ -107,7 +107,7 @@ function createInitialState() {
         icon: '🌊',
         lat: 19.0892,
         lng: 72.8422,
-        schematicPos: { x: 620, y: 170 },
+        schematicPos: { x: 1160, y: 1100 },
         location: 'Milan Subway Arterial Underpass, Vile Parle / Santacruz Link',
         reportTime: 'T-02:10',
         lastUpdate: 'T-00:20',
@@ -134,7 +134,7 @@ function createInitialState() {
         icon: '🔥',
         lat: 19.0945,
         lng: 72.8562,
-        schematicPos: { x: 260, y: 440 },
+        schematicPos: { x: 1650, y: 920 },
         location: 'Western Express Highway Junction, Vile Parle East, Mumbai',
         reportTime: 'T-00:50',
         lastUpdate: 'T-00:08',
@@ -161,7 +161,7 @@ function createInitialState() {
         icon: '⛰️',
         lat: 19.1065,
         lng: 72.8345,
-        schematicPos: { x: 740, y: 410 },
+        schematicPos: { x: 520, y: 460 },
         location: 'Juhu Scheme 10th Road Extension, Vile Parle West, Mumbai',
         reportTime: 'T-03:20',
         lastUpdate: 'T-01:10',
@@ -188,7 +188,7 @@ function createInitialState() {
         icon: '🔥',
         lat: 19.0915,
         lng: 72.8585,
-        schematicPos: { x: 190, y: 520 },
+        schematicPos: { x: 2020, y: 1220 },
         location: 'Domestic Airport Cargo Gate 4, Vile Parle East, Mumbai',
         reportTime: 'T-00:25',
         lastUpdate: 'T-00:03',
@@ -215,7 +215,7 @@ function createInitialState() {
         icon: '🏗️',
         lat: 19.1030,
         lng: 72.8455,
-        schematicPos: { x: 470, y: 140 },
+        schematicPos: { x: 1160, y: 520 },
         location: 'Parleshwar Overbridge, Western Railway Line, Vile Parle East',
         reportTime: 'T-01:10',
         lastUpdate: 'T-00:15',
@@ -242,7 +242,7 @@ function createInitialState() {
         icon: '🌊',
         lat: 19.1010,
         lng: 72.8390,
-        schematicPos: { x: 570, y: 340 },
+        schematicPos: { x: 820, y: 640 },
         location: 'Irla Bridge Culvert, Vile Parle West, Mumbai',
         reportTime: 'T-01:30',
         lastUpdate: 'T-00:12',
@@ -269,7 +269,7 @@ function createInitialState() {
         icon: '⛰️',
         lat: 19.0965,
         lng: 72.8520,
-        schematicPos: { x: 330, y: 350 },
+        schematicPos: { x: 1780, y: 720 },
         location: 'Bamanwada Hillock Perimeter, Vile Parle East, Mumbai',
         reportTime: 'T-02:40',
         lastUpdate: 'T-00:45',
@@ -746,11 +746,11 @@ function renderSchematicPins() {
 
     html += `
       <g class="schematic-pin ${isSelected ? 'is-selected' : ''}" data-id="${inc.id}" transform="translate(${inc.schematicPos.x}, ${inc.schematicPos.y})">
-        <circle class="ring" cx="0" cy="0" r="14" fill="${col}" opacity="0.3" />
-        <circle class="pin-circle" cx="0" cy="0" r="14" fill="#111a24" stroke="${col}" stroke-width="${isSelected ? '3.5' : '1.5'}" />
-        <text x="0" y="5" text-anchor="middle" font-size="14">${inc.icon}</text>
-        <rect x="-60" y="18" width="120" height="20" rx="3" fill="rgba(17,26,36,0.92)" stroke="#243548" />
-        <text x="0" y="32" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">${inc.typeName}</text>
+        <circle class="ring" cx="0" cy="0" r="24" fill="${col}" opacity="0.3" />
+        <circle class="pin-circle" cx="0" cy="0" r="18" fill="#111a24" stroke="${col}" stroke-width="${isSelected ? '4' : '2'}" />
+        <text x="0" y="6" text-anchor="middle" font-size="16">${inc.icon}</text>
+        <rect x="-75" y="24" width="150" height="22" rx="4" fill="rgba(17,26,36,0.94)" stroke="#243548" />
+        <text x="0" y="39" text-anchor="middle" fill="#fff" font-size="10.5" font-weight="700">${inc.typeName}</text>
       </g>
     `;
   });
@@ -799,11 +799,11 @@ let panStartY = 0;
 
 function applySchematicTransform() {
   if (!schematicRegionalSvg) return;
-  schematicZoom = Math.max(0.6, Math.min(4.5, schematicZoom));
-  const w = 1000 / schematicZoom;
-  const h = 600 / schematicZoom;
-  const cx = 500 - schematicPanX;
-  const cy = 300 - schematicPanY;
+  schematicZoom = Math.max(0.35, Math.min(6.0, schematicZoom));
+  const w = 2400 / schematicZoom;
+  const h = 1600 / schematicZoom;
+  const cx = 1200 - schematicPanX;
+  const cy = 800 - schematicPanY;
   const minX = cx - w / 2;
   const minY = cy - h / 2;
   schematicRegionalSvg.setAttribute('viewBox', `${minX} ${minY} ${w} ${h}`);
@@ -890,11 +890,12 @@ function selectIncident(inc) {
   }
 
   if (inc.schematicPos && schematicMapFallback && !schematicMapFallback.classList.contains('hidden')) {
-    if (schematicZoom > 1.0) {
-      schematicPanX = 500 - inc.schematicPos.x;
-      schematicPanY = 300 - inc.schematicPos.y;
-      applySchematicTransform();
+    schematicPanX = 1200 - inc.schematicPos.x;
+    schematicPanY = 800 - inc.schematicPos.y;
+    if (schematicZoom < 1.1) {
+      schematicZoom = 1.35;
     }
+    applySchematicTransform();
   }
 
   // Smooth UI highlight without recreating DOM nodes
