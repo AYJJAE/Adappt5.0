@@ -604,15 +604,17 @@ function renderGoogleMapsPins() {
       position: { lat: inc.lat, lng: inc.lng },
       map: gMap,
       title: inc.name,
+      zIndex: isSelected ? 999 : 1,
       label: {
         text: inc.icon,
         fontSize: isSelected ? '24px' : '18px'
       }
     });
 
+    marker.incidentId = inc.id;
+
     marker.addListener('click', () => {
       selectIncident(inc);
-      gMap.panTo({ lat: inc.lat, lng: inc.lng });
     });
 
     gMapMarkers.push(marker);
@@ -630,11 +632,11 @@ function renderSchematicPins() {
     const col = inc.severity === 'CRITICAL' ? '#f85149' : (inc.severity === 'HIGH' ? '#d29922' : '#e3b341');
 
     html += `
-      <g class="schematic-pin" data-id="${inc.id}" transform="translate(${inc.schematicPos.x}, ${inc.schematicPos.y})">
+      <g class="schematic-pin ${isSelected ? 'is-selected' : ''}" data-id="${inc.id}" transform="translate(${inc.schematicPos.x}, ${inc.schematicPos.y})">
         <circle class="ring" cx="0" cy="0" r="14" fill="${col}" opacity="0.3" />
-        <circle cx="0" cy="0" r="14" fill="#111a24" stroke="${col}" stroke-width="${isSelected ? '3' : '1.5'}" />
+        <circle class="pin-circle" cx="0" cy="0" r="14" fill="#111a24" stroke="${col}" stroke-width="${isSelected ? '3.5' : '1.5'}" />
         <text x="0" y="5" text-anchor="middle" font-size="14">${inc.icon}</text>
-        <rect x="-60" y="18" width="120" height="20" rx="3" fill="rgba(17,26,36,0.9)" stroke="#243548" />
+        <rect x="-60" y="18" width="120" height="20" rx="3" fill="rgba(17,26,36,0.92)" stroke="#243548" />
         <text x="0" y="32" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">${inc.typeName}</text>
       </g>
     `;
@@ -643,11 +645,32 @@ function renderSchematicPins() {
   schematicIncidentPins.innerHTML = html;
 
   schematicIncidentPins.querySelectorAll('.schematic-pin').forEach(el => {
-    el.addEventListener('click', () => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
       const inc = state.incidents.find(i => i.id === el.dataset.id);
       if (inc) selectIncident(inc);
     });
   });
+}
+
+function updatePinSelectionUI() {
+  if (schematicIncidentPins) {
+    schematicIncidentPins.querySelectorAll('.schematic-pin').forEach(el => {
+      const isSel = selectedIncident && el.dataset.id === selectedIncident.id;
+      el.classList.toggle('is-selected', isSel);
+      const circle = el.querySelector('.pin-circle');
+      if (circle) {
+        circle.setAttribute('stroke-width', isSel ? '3.5' : '1.5');
+      }
+    });
+  }
+
+  if (gMapMarkers && gMapMarkers.length > 0) {
+    gMapMarkers.forEach(m => {
+      const isSel = selectedIncident && m.incidentId === selectedIncident.id;
+      if (m.setZIndex) m.setZIndex(isSel ? 999 : 1);
+    });
+  }
 }
 
 // --------------------------------------------------------------------------
@@ -662,9 +685,8 @@ function selectIncident(inc) {
     gMap.panTo({ lat: inc.lat, lng: inc.lng });
   }
 
-  // Refresh pins to show selection styling
-  if (gMap) renderGoogleMapsPins();
-  renderSchematicPins();
+  // Smooth UI highlight without recreating DOM nodes
+  updatePinSelectionUI();
 }
 
 function renderIncidentPanel(inc) {

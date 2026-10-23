@@ -351,18 +351,35 @@ body {
   color: #fff;
 }
 
-/* SCHEMATIC PIN INTERACTION */
+/* SCHEMATIC PIN INTERACTION - GLITCH-FREE */
 .schematic-pin {
   cursor: pointer;
-  transition: transform 0.2s ease;
+  pointer-events: all;
 }
 
-.schematic-pin:hover {
-  transform: scale(1.12);
+.schematic-pin .pin-circle {
+  transition: stroke-width 0.15s ease, filter 0.15s ease;
+}
+
+.schematic-pin:hover .pin-circle {
+  filter: drop-shadow(0 0 8px rgba(88, 166, 255, 0.7));
+  stroke-width: 2.8px;
+}
+
+.schematic-pin.is-selected .pin-circle {
+  stroke-width: 3.5px;
+  filter: drop-shadow(0 0 10px rgba(248, 81, 73, 0.85));
 }
 
 .schematic-pin circle.ring {
   animation: pulse-pin 2s infinite ease-out;
+  pointer-events: none;
+}
+
+.schematic-pin text,
+.schematic-pin rect {
+  pointer-events: none;
+  user-select: none;
 }
 
 @keyframes pulse-pin {
