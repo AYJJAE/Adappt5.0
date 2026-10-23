@@ -7,17 +7,30 @@ import { createSite3D } from './site3d.js';
 
 // Configuration: API Key management
 let GOOGLE_MAPS_API_KEY = "";
+
+// 1. Check URL parameters (?key=... or ?gmap_key=...)
 try {
-  const localConfig = await import('./config.local.js');
-  if (localConfig?.config?.googleMapsApiKey && !localConfig.config.googleMapsApiKey.includes('YOUR_')) {
-    GOOGLE_MAPS_API_KEY = localConfig.config.googleMapsApiKey;
-  }
-} catch {
-  // If no local config file, check server config endpoint
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramKey = urlParams.get('key') || urlParams.get('gmap_key');
+  if (paramKey) GOOGLE_MAPS_API_KEY = paramKey.trim();
+} catch {}
+
+// 2. Check local config file
+if (!GOOGLE_MAPS_API_KEY) {
+  try {
+    const localConfig = await import('./config.local.js');
+    if (localConfig?.config?.googleMapsApiKey && !localConfig.config.googleMapsApiKey.includes('YOUR_')) {
+      GOOGLE_MAPS_API_KEY = localConfig.config.googleMapsApiKey.trim();
+    }
+  } catch {}
+}
+
+// 3. Check server config endpoint (/api/config)
+if (!GOOGLE_MAPS_API_KEY) {
   try {
     const res = await fetch('/api/config');
     const data = await res.json();
-    if (data?.googleMapsApiKey) GOOGLE_MAPS_API_KEY = data.googleMapsApiKey;
+    if (data?.googleMapsApiKey) GOOGLE_MAPS_API_KEY = data.googleMapsApiKey.trim();
   } catch {}
 }
 
@@ -389,6 +402,47 @@ const btnToggleMapMode = document.querySelector('#btn-toggle-map-mode');
 const schematicBannerDesc = document.querySelector('#schematic-banner-desc');
 
 function initMapExperience() {
+  const btnConfigApiKey = document.querySelector('#btn-config-api-key');
+  const apiKeyDialog = document.querySelector('#api-key-dialog');
+  const apiKeyForm = document.querySelector('#api-key-form');
+  const inputGmapsKey = document.querySelector('#input-gmaps-key');
+  const btnCloseKeyDialog = document.querySelector('#btn-close-key-dialog');
+  const btnCancelKeyDialog = document.querySelector('#btn-cancel-key-dialog');
+
+  if (btnConfigApiKey && apiKeyDialog) {
+    btnConfigApiKey.addEventListener('click', () => {
+      if (inputGmapsKey) inputGmapsKey.value = GOOGLE_MAPS_API_KEY || '';
+      apiKeyDialog.showModal();
+    });
+  }
+
+  if (btnCloseKeyDialog && apiKeyDialog) {
+    btnCloseKeyDialog.addEventListener('click', () => apiKeyDialog.close());
+  }
+
+  if (btnCancelKeyDialog && apiKeyDialog) {
+    btnCancelKeyDialog.addEventListener('click', () => apiKeyDialog.close());
+  }
+
+  if (apiKeyForm && apiKeyDialog) {
+    apiKeyForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newKey = inputGmapsKey?.value?.trim() || '';
+      apiKeyDialog.close();
+
+      if (!newKey) {
+        GOOGLE_MAPS_API_KEY = '';
+        showToast('Key Cleared', 'Switched to Tactical Schematic Map');
+        showSchematicFallback('Google Maps API key omitted. Active: Tactical Schematic Map.');
+        return;
+      }
+
+      GOOGLE_MAPS_API_KEY = newKey;
+      showToast('Key Applied', 'Attempting to load Google Maps...');
+      loadGoogleMaps(GOOGLE_MAPS_API_KEY);
+    });
+  }
+
   if (btnToggleMapMode) {
     btnToggleMapMode.addEventListener('click', () => {
       if (currentMapMode === 'SCHEMATIC') {
