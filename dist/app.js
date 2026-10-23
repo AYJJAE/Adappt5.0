@@ -179,6 +179,114 @@ function createInitialState() {
         roverAssigned: null,
         has3DScene: false,
         dataDisclaimer: 'Sensor tiltmeter estimate; ground verification pending. 3D scene unavailable.'
+      },
+      {
+        id: 'inc-fire-05',
+        name: 'Airport Fuel Line Rupture & Flare',
+        type: 'FIRE',
+        typeName: 'Fire / Hazmat',
+        icon: '🔥',
+        lat: 19.0915,
+        lng: 72.8585,
+        schematicPos: { x: 190, y: 520 },
+        location: 'Domestic Airport Cargo Gate 4, Vile Parle East, Mumbai',
+        reportTime: 'T-00:25',
+        lastUpdate: 'T-00:03',
+        severity: 'CRITICAL',
+        severityLevel: 4,
+        severityLabel: '🔴 CRITICAL (Level 4)',
+        verificationStatus: 'ESTIMATED REMOTE DATA',
+        status: 'CONTAINMENT',
+        statusLabel: 'Containment',
+        situationSummary: 'Underground pressurized fuel line breach triggering high-intensity surface flare adjacent to perimeter taxiway. Emergency foam suppression units deployed.',
+        affectedZones: 'Cargo Access Road & Eastern Perimeter Cordon',
+        assignedTeamId: 'TEAM_SENTINEL',
+        assignedTeamName: 'Team Sentinel (Technical Rescue)',
+        responseStatus: 'ON SCENE',
+        roverAssigned: null,
+        has3DScene: false,
+        dataDisclaimer: 'Emergency beacon trigger; sensor verification in progress. 3D scene unavailable.'
+      },
+      {
+        id: 'inc-collapse-06',
+        name: 'Parleshwar Footbridge Truss Failure',
+        type: 'COLLAPSE',
+        typeName: 'Building Collapse',
+        icon: '🏗️',
+        lat: 19.1030,
+        lng: 72.8455,
+        schematicPos: { x: 470, y: 140 },
+        location: 'Parleshwar Overbridge, Western Railway Line, Vile Parle East',
+        reportTime: 'T-01:10',
+        lastUpdate: 'T-00:15',
+        severity: 'HIGH',
+        severityLevel: 3,
+        severityLabel: '🟠 HIGH (Level 3)',
+        verificationStatus: 'UNVERIFIED FIELD REPORT',
+        status: 'ASSESSMENT',
+        statusLabel: 'Assessment',
+        situationSummary: 'Structural fatigue failure along pedestrian transit truss. Deck misalignment detected by railway strain gauges. Ingress sealed.',
+        affectedZones: 'Footbridge East Approach & Platform Stairway 2',
+        assignedTeamId: null,
+        assignedTeamName: 'Civil Engineering Assessment Squad',
+        responseStatus: 'ASSESSMENT',
+        roverAssigned: null,
+        has3DScene: false,
+        dataDisclaimer: 'Railway strain sensor telemetry; field verification staged. 3D scene unavailable.'
+      },
+      {
+        id: 'inc-flood-07',
+        name: 'Irla Nullah Culvert Overflow Breach',
+        type: 'FLOOD',
+        typeName: 'Flooding',
+        icon: '🌊',
+        lat: 19.1010,
+        lng: 72.8390,
+        schematicPos: { x: 570, y: 340 },
+        location: 'Irla Bridge Culvert, Vile Parle West, Mumbai',
+        reportTime: 'T-01:30',
+        lastUpdate: 'T-00:12',
+        severity: 'HIGH',
+        severityLevel: 3,
+        severityLabel: '🟠 HIGH (Level 3)',
+        verificationStatus: 'ESTIMATED REMOTE DATA',
+        status: 'MONITORING',
+        statusLabel: 'Monitoring',
+        situationSummary: 'Debris buildup in tidal culvert generating 0.7m backflow inundation across market lanes. High-capacity dewatering pumps en route.',
+        affectedZones: 'Irla Market Approach Lanes 1 & 3',
+        assignedTeamId: 'TEAM_VANGUARD',
+        assignedTeamName: 'Team Vanguard (Recon & Hazmat)',
+        responseStatus: 'STAGED',
+        roverAssigned: null,
+        has3DScene: false,
+        dataDisclaimer: 'Hydrological gauge telemetry; remote assessment only. 3D scene unavailable.'
+      },
+      {
+        id: 'inc-landslide-08',
+        name: 'Bamanwada Retaining Wall Subsidence',
+        type: 'LANDSLIDE',
+        typeName: 'Landslide',
+        icon: '⛰️',
+        lat: 19.0965,
+        lng: 72.8520,
+        schematicPos: { x: 330, y: 350 },
+        location: 'Bamanwada Hillock Perimeter, Vile Parle East, Mumbai',
+        reportTime: 'T-02:40',
+        lastUpdate: 'T-00:45',
+        severity: 'MEDIUM',
+        severityLevel: 2,
+        severityLabel: '🟡 MEDIUM (Level 2)',
+        verificationStatus: 'ESTIMATED REMOTE DATA',
+        status: 'ASSESSMENT',
+        statusLabel: 'Assessment',
+        situationSummary: 'Soil saturation causing 15m masonry retaining wall deflection onto access lane. Geological tilt sensors active.',
+        affectedZones: 'Hillock Service Lane North',
+        assignedTeamId: null,
+        assignedTeamName: 'Civil Engineering Assessment Squad',
+        responseStatus: 'ASSESSMENT',
+        roverAssigned: null,
+        has3DScene: false,
+        dataDisclaimer: 'Geotechnical tilt sensor estimate; ground inspection pending. 3D scene unavailable.'
       }
     ],
     site: {
@@ -270,11 +378,15 @@ const filterSeverity = document.querySelector('#filter-severity');
 const filterStatus = document.querySelector('#filter-status');
 const incidentsSummaryPill = document.querySelector('#incidents-summary-pill');
 
-// Views
+// Views & Zoom Controls
 const mapViewCanvas = document.querySelector('#map-view-canvas');
 const googleMapCanvas = document.querySelector('#google-map-canvas');
 const schematicMapFallback = document.querySelector('#schematic-map-fallback');
+const schematicRegionalSvg = document.querySelector('#schematic-regional-svg');
 const schematicIncidentPins = document.querySelector('#schematic-incident-pins');
+const btnZoomIn = document.querySelector('#btn-zoom-in');
+const btnZoomOut = document.querySelector('#btn-zoom-out');
+const btnZoomReset = document.querySelector('#btn-zoom-reset');
 
 // Side Panel
 const incidentSidePanel = document.querySelector('#incident-side-panel');
@@ -303,6 +415,7 @@ const site3DUnavailableMsg = document.querySelector('#site-3d-unavailable-msg');
 // 3D Viewport
 const site3DView = document.querySelector('#site-3d-view');
 const btnReturnToMap = document.querySelector('#btn-return-to-map');
+const btnFloatingBackToMap = document.querySelector('#btn-floating-back-to-map');
 const btnCamOrbit = document.querySelector('#btn-cam-orbit');
 const btnCamRover = document.querySelector('#btn-cam-rover');
 const btnCamFollow = document.querySelector('#btn-cam-follow');
@@ -675,6 +788,96 @@ function updatePinSelectionUI() {
 }
 
 // --------------------------------------------------------------------------
+// MAP ZOOM & PAN CONTROLS (Google Maps & Tactical Schematic SVG)
+// --------------------------------------------------------------------------
+let schematicZoom = 1.0;
+let schematicPanX = 0;
+let schematicPanY = 0;
+let isPanningSchematic = false;
+let panStartX = 0;
+let panStartY = 0;
+
+function applySchematicTransform() {
+  if (!schematicRegionalSvg) return;
+  schematicZoom = Math.max(0.6, Math.min(4.5, schematicZoom));
+  const w = 1000 / schematicZoom;
+  const h = 600 / schematicZoom;
+  const cx = 500 - schematicPanX;
+  const cy = 300 - schematicPanY;
+  const minX = cx - w / 2;
+  const minY = cy - h / 2;
+  schematicRegionalSvg.setAttribute('viewBox', `${minX} ${minY} ${w} ${h}`);
+}
+
+function zoomIn() {
+  if (gMap && !googleMapCanvas.classList.contains('hidden')) {
+    gMap.setZoom(gMap.getZoom() + 1);
+  } else {
+    schematicZoom *= 1.25;
+    applySchematicTransform();
+  }
+}
+
+function zoomOut() {
+  if (gMap && !googleMapCanvas.classList.contains('hidden')) {
+    gMap.setZoom(gMap.getZoom() - 1);
+  } else {
+    schematicZoom /= 1.25;
+    applySchematicTransform();
+  }
+}
+
+function resetZoom() {
+  if (gMap && !googleMapCanvas.classList.contains('hidden')) {
+    gMap.setZoom(14);
+    gMap.setCenter({ lat: 19.0998, lng: 72.8441 });
+  }
+  schematicZoom = 1.0;
+  schematicPanX = 0;
+  schematicPanY = 0;
+  applySchematicTransform();
+}
+
+// Interactive Wheel Zoom & Click-and-Drag Pan on Tactical SVG Map
+if (schematicRegionalSvg) {
+  schematicRegionalSvg.style.cursor = 'grab';
+
+  schematicRegionalSvg.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.15 : 0.87;
+    schematicZoom *= factor;
+    applySchematicTransform();
+  }, { passive: false });
+
+  schematicRegionalSvg.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    if (e.target.closest('.schematic-pin')) return;
+    isPanningSchematic = true;
+    panStartX = e.clientX;
+    panStartY = e.clientY;
+    schematicRegionalSvg.style.cursor = 'grabbing';
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isPanningSchematic) return;
+    const dx = (e.clientX - panStartX) / schematicZoom;
+    const dy = (e.clientY - panStartY) / schematicZoom;
+    panStartX = e.clientX;
+    panStartY = e.clientY;
+    schematicPanX += dx;
+    schematicPanY += dy;
+    applySchematicTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isPanningSchematic) {
+      isPanningSchematic = false;
+      if (schematicRegionalSvg) schematicRegionalSvg.style.cursor = 'grab';
+    }
+  });
+}
+
+// --------------------------------------------------------------------------
 // INCIDENT SELECTION & SIDE PANEL
 // --------------------------------------------------------------------------
 function selectIncident(inc) {
@@ -684,6 +887,14 @@ function selectIncident(inc) {
 
   if (gMap && inc.lat && inc.lng) {
     gMap.panTo({ lat: inc.lat, lng: inc.lng });
+  }
+
+  if (inc.schematicPos && schematicMapFallback && !schematicMapFallback.classList.contains('hidden')) {
+    if (schematicZoom > 1.0) {
+      schematicPanX = 500 - inc.schematicPos.x;
+      schematicPanY = 300 - inc.schematicPos.y;
+      applySchematicTransform();
+    }
   }
 
   // Smooth UI highlight without recreating DOM nodes
@@ -1423,6 +1634,21 @@ btnCloseSidePanel.addEventListener('click', () => {
 
 btnOpen3DSite.addEventListener('click', open3DSiteView);
 btnReturnToMap.addEventListener('click', close3DSiteView);
+if (btnFloatingBackToMap) {
+  btnFloatingBackToMap.addEventListener('click', close3DSiteView);
+}
+
+// Global Escape Key to return from 3D View to Map
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && is3DViewOpen) {
+    close3DSiteView();
+  }
+});
+
+// Map Zoom Controls
+if (btnZoomIn) btnZoomIn.addEventListener('click', zoomIn);
+if (btnZoomOut) btnZoomOut.addEventListener('click', zoomOut);
+if (btnZoomReset) btnZoomReset.addEventListener('click', resetZoom);
 
 btnCamOrbit.addEventListener('click', () => {
   btnCamOrbit.className = 'btn btn-sm btn-primary';
