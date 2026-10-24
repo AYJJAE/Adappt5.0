@@ -67,14 +67,15 @@ function createInitialState() {
         severity: 'CRITICAL',
         severityLevel: 4,
         severityLabel: '🔴 CRITICAL (Level 4)',
-        verificationStatus: 'UNVERIFIED_REPORT',
-        status: 'ACTIVE_SCOUTING',
-        statusLabel: 'Active Scouting',
+        verificationStatus: 'VERIFIED',
+        lifecycleStatus: 'RESPONDING',
+        status: 'RESPONDING',
+        statusLabel: 'Responding (On Scene)',
         situationSummary: 'Reported multi-story commercial arcade slab collapse. Ground access along Station Road corridor obstructed. Unmanned scout rover deployed for internal structural reconnaissance.',
         affectedZones: 'Approach Alpha (North Tunnel), Approach Bravo (South Passage), Sector C Target Area',
         assignedTeamId: 'TEAM_VANGUARD',
         assignedTeamName: 'Team Vanguard (Recon & Hazmat)',
-        responseStatus: 'ON_SCENE',
+        responseStatus: 'RESPONDING',
         roverAssigned: 'SUGRIV-01',
         has3DScene: true,
         dataDisclaimer: 'Simulated sensor observations; unverified structural estimates.'
@@ -94,14 +95,15 @@ function createInitialState() {
         severity: 'HIGH',
         severityLevel: 3,
         severityLabel: '🟠 HIGH (Level 3)',
-        verificationStatus: 'ESTIMATED_REMOTE',
-        status: 'MONITORING',
-        statusLabel: 'Monitoring',
+        verificationStatus: 'VERIFIED',
+        lifecycleStatus: 'ASSESSING',
+        status: 'ASSESSING',
+        statusLabel: 'Assessing',
         situationSummary: 'Monsoon stormwater runoff inundating subway underpass at +0.9m/hr. Vehicular transit restricted across arterial link.',
         affectedZones: 'Subway Ingress Arterials & Lowland Drain Channels',
         assignedTeamId: 'TEAM_SENTINEL',
         assignedTeamName: 'Team Sentinel (Technical Rescue)',
-        responseStatus: 'STAGED',
+        responseStatus: 'ASSESSING',
         roverAssigned: null,
         has3DScene: false,
         dataDisclaimer: 'Remote hydrological estimates only. No rover on site. 3D scene unavailable.'
@@ -121,14 +123,15 @@ function createInitialState() {
         severity: 'HIGH',
         severityLevel: 3,
         severityLabel: '🟠 HIGH (Level 3)',
-        verificationStatus: 'ESTIMATED_REMOTE',
-        status: 'CONTAINMENT',
-        statusLabel: 'Containment',
+        verificationStatus: 'VERIFIED',
+        lifecycleStatus: 'RESPONDING',
+        status: 'RESPONDING',
+        statusLabel: 'Responding',
         situationSummary: 'Electrical substation transformer thermal runaway with heavy toxic smoke plume near domestic airport boundary. Perimeter cordon active.',
         affectedZones: 'WEH Service Road & Feeder Substation Perimeter',
         assignedTeamId: null,
         assignedTeamName: 'Regional Hazmat Cordon Unit',
-        responseStatus: 'CONTAINMENT',
+        responseStatus: 'RESPONDING',
         roverAssigned: null,
         has3DScene: false,
         dataDisclaimer: 'Thermal satellite detection; unverified ground confirmation. 3D scene unavailable.'
@@ -148,14 +151,15 @@ function createInitialState() {
         severity: 'MEDIUM',
         severityLevel: 2,
         severityLabel: '🟡 MEDIUM (Level 2)',
-        verificationStatus: 'ESTIMATED_REMOTE',
-        status: 'ASSESSMENT',
-        statusLabel: 'Assessment',
+        verificationStatus: 'VERIFIED',
+        lifecycleStatus: 'ASSESSING',
+        status: 'ASSESSING',
+        statusLabel: 'Assessing',
         situationSummary: 'Deep excavation retaining wall deformation and soil displacement encroaching upon western service lane. Geotechnical tiltmeters active.',
         affectedZones: 'Western Service Lane & Adjacent Drainage Culvert',
         assignedTeamId: null,
         assignedTeamName: 'Civil Engineering Assessment Squad',
-        responseStatus: 'ASSESSMENT',
+        responseStatus: 'ASSESSING',
         roverAssigned: null,
         has3DScene: false,
         dataDisclaimer: 'Sensor tiltmeter estimate; ground verification pending. 3D scene unavailable.'
@@ -175,14 +179,15 @@ function createInitialState() {
         severity: 'CRITICAL',
         severityLevel: 4,
         severityLabel: '🔴 CRITICAL (Level 4)',
-        verificationStatus: 'ESTIMATED_REMOTE',
-        status: 'CONTAINMENT',
-        statusLabel: 'Containment',
+        verificationStatus: 'VERIFIED',
+        lifecycleStatus: 'RESPONDING',
+        status: 'RESPONDING',
+        statusLabel: 'Responding',
         situationSummary: 'Underground pressurized fuel line breach triggering high-intensity surface flare adjacent to perimeter taxiway. Emergency foam suppression units deployed.',
         affectedZones: 'Cargo Access Road & Eastern Perimeter Cordon',
         assignedTeamId: 'TEAM_SENTINEL',
         assignedTeamName: 'Team Sentinel (Technical Rescue)',
-        responseStatus: 'ON_SCENE',
+        responseStatus: 'RESPONDING',
         roverAssigned: null,
         has3DScene: false,
         dataDisclaimer: 'Emergency beacon trigger; sensor verification in progress. 3D scene unavailable.'
@@ -202,14 +207,15 @@ function createInitialState() {
         severity: 'HIGH',
         severityLevel: 3,
         severityLabel: '🟠 HIGH (Level 3)',
-        verificationStatus: 'UNVERIFIED_REPORT',
-        status: 'ASSESSMENT',
-        statusLabel: 'Assessment',
+        verificationStatus: 'UNVERIFIED',
+        lifecycleStatus: 'REPORTED',
+        status: 'REPORTED',
+        statusLabel: 'Reported (Unverified)',
         situationSummary: 'Structural fatigue failure along pedestrian transit truss. Deck misalignment detected by railway strain gauges. Ingress sealed.',
         affectedZones: 'Footbridge East Approach & Platform Stairway 2',
         assignedTeamId: null,
         assignedTeamName: 'Civil Engineering Assessment Squad',
-        responseStatus: 'ASSESSMENT',
+        responseStatus: 'REPORTED',
         roverAssigned: null,
         has3DScene: false,
         dataDisclaimer: 'Railway strain sensor telemetry; field verification staged. 3D scene unavailable.'
@@ -229,14 +235,15 @@ function createInitialState() {
         severity: 'HIGH',
         severityLevel: 3,
         severityLabel: '🟠 HIGH (Level 3)',
-        verificationStatus: 'ESTIMATED_REMOTE',
-        status: 'MONITORING',
-        statusLabel: 'Monitoring',
+        verificationStatus: 'VERIFIED',
+        lifecycleStatus: 'RESPONDING',
+        status: 'RESPONDING',
+        statusLabel: 'Responding',
         situationSummary: 'Debris buildup in tidal culvert generating 0.7m backflow inundation across market lanes. High-capacity dewatering pumps en route.',
         affectedZones: 'Irla Market Approach Lanes 1 & 3',
         assignedTeamId: 'TEAM_VANGUARD',
         assignedTeamName: 'Team Vanguard (Recon & Hazmat)',
-        responseStatus: 'STAGED',
+        responseStatus: 'RESPONDING',
         roverAssigned: null,
         has3DScene: false,
         dataDisclaimer: 'Hydrological gauge telemetry; remote assessment only. 3D scene unavailable.'
@@ -256,14 +263,15 @@ function createInitialState() {
         severity: 'MEDIUM',
         severityLevel: 2,
         severityLabel: '🟡 MEDIUM (Level 2)',
-        verificationStatus: 'ESTIMATED_REMOTE',
-        status: 'ASSESSMENT',
-        statusLabel: 'Assessment',
+        verificationStatus: 'VERIFIED',
+        lifecycleStatus: 'CLOSED',
+        status: 'CLOSED',
+        statusLabel: 'Closed',
         situationSummary: 'Soil saturation causing 15m masonry retaining wall deflection onto access lane. Geological tilt sensors active.',
         affectedZones: 'Hillock Service Lane North',
         assignedTeamId: null,
         assignedTeamName: 'Civil Engineering Assessment Squad',
-        responseStatus: 'ASSESSMENT',
+        responseStatus: 'CLOSED',
         roverAssigned: null,
         has3DScene: false,
         dataDisclaimer: 'Geotechnical tilt sensor estimate; ground inspection pending. 3D scene unavailable.'
@@ -316,31 +324,147 @@ function createInitialState() {
         id: 'TEAM_VANGUARD',
         name: 'Team Vanguard',
         role: 'Recon & Hazmat Specialists',
+        capabilities: ['Confined Void Recon', 'Hazmat Assessment', 'Structural LiDAR'],
         status: 'AVAILABLE', // 'AVAILABLE', 'ASSIGNED', 'DEPLOYED'
         currentZone: 'ENTRY',
-        currentTaskId: null
+        currentTaskId: null,
+        activeIncidentId: null
       },
       TEAM_SENTINEL: {
         id: 'TEAM_SENTINEL',
         name: 'Team Sentinel',
         role: 'Technical Rescue & Obstacle Clearance',
+        capabilities: ['Heavy Debris Breaching', 'Shoring & Stabilization', 'Trench Rescue'],
         status: 'AVAILABLE', // 'AVAILABLE', 'ASSIGNED', 'DEPLOYED'
         currentZone: 'ENTRY',
-        currentTaskId: null
+        currentTaskId: null,
+        activeIncidentId: null
+      },
+      TEAM_PHOENIX: {
+        id: 'TEAM_PHOENIX',
+        name: 'Team Phoenix',
+        role: 'Medical First Response & Triage',
+        capabilities: ['Emergency Field Triage', 'Trauma Stabilization', 'Casualty Evacuation'],
+        status: 'AVAILABLE',
+        currentZone: 'STAGING',
+        currentTaskId: null,
+        activeIncidentId: null
+      },
+      TEAM_ATLAS: {
+        id: 'TEAM_ATLAS',
+        name: 'Team Atlas',
+        role: 'Logistics & Heavy Transport',
+        capabilities: ['Relief Supply Distribution', 'Potable Water Hauling', 'Power & Flood Defenses'],
+        status: 'AVAILABLE',
+        currentZone: 'STAGING',
+        currentTaskId: null,
+        activeIncidentId: null
       }
     },
     observations: [],
-    alerts: [],
+    alerts: [
+      {
+        id: 'alert-milan-flood',
+        incidentId: 'inc-flood-02',
+        incidentName: 'Milan Subway Flash Inundation',
+        zone: 'Milan Underpass Ingress',
+        type: 'RAPID_INUNDATION',
+        title: 'Monsoon Runoff Surge in Subway Underpass',
+        severity: 'HIGH',
+        source: 'HYDROLOGICAL_SENSOR',
+        status: 'ACTIVE_REVIEW',
+        acknowledged: false,
+        acknowledgedAt: null,
+        acknowledgedBy: null,
+        triggeredAt: 'T-00:20',
+        triggerReason: 'Water level rate of rise exceeded +0.9m/hr threshold on ultrasonic depth gauge #M-04.',
+        readings: [
+          { simTime: 'T-00:22', levelM: 0.8 },
+          { simTime: 'T-00:20', levelM: 1.2 }
+        ]
+      },
+      {
+        id: 'alert-weh-fire',
+        incidentId: 'inc-fire-03',
+        incidentName: 'WEH Feeder Transformer Fire',
+        zone: 'Feeder Substation Perimeter',
+        type: 'HAZMAT_PLUME',
+        title: 'Toxic Dense Smoke Plume near WEH Ramp',
+        severity: 'HIGH',
+        source: 'AIRPORT_AIR_MONITOR',
+        status: 'ACTIVE_REVIEW',
+        acknowledged: false,
+        acknowledgedAt: null,
+        acknowledgedBy: null,
+        triggeredAt: 'T-00:08',
+        triggerReason: 'Particulate density sensor registered PM2.5 > 350 ug/m3 with oil combustion signature.',
+        readings: [
+          { simTime: 'T-00:08', pm25: 380 }
+        ]
+      }
+    ],
     priorities: [],
     tasks: [],
+    reliefRequests: [
+      {
+        id: 'rel-101',
+        incidentId: 'inc-collapse-01',
+        incidentName: 'Station Road Arcade Structural Collapse',
+        itemType: 'WATER',
+        itemLabel: 'Potable Drinking Water',
+        quantity: 1500,
+        unit: 'liters',
+        destination: 'Station Perimeter Evacuation Staging',
+        priority: 'HIGH',
+        status: 'REQUESTED',
+        assignedTeamId: null,
+        assignedTeamName: 'Unassigned',
+        requestedAt: 'T-00:30',
+        deliveredAt: null,
+        notes: 'Urgent drinking water for evacuated arcade workers and response staging area.'
+      },
+      {
+        id: 'rel-102',
+        incidentId: 'inc-flood-02',
+        incidentName: 'Milan Subway Flash Inundation',
+        itemType: 'FIRST_AID',
+        itemLabel: 'First-Aid & Trauma Kits',
+        quantity: 40,
+        unit: 'kits',
+        destination: 'Milan North Ramp Triage Post',
+        priority: 'MEDIUM',
+        status: 'ASSIGNED',
+        assignedTeamId: 'TEAM_ATLAS',
+        assignedTeamName: 'Team Atlas (Logistics & Transport)',
+        requestedAt: 'T-00:15',
+        deliveredAt: null,
+        notes: 'Staged for stranded motorists undergoing cold-water wading evacuation.'
+      }
+    ],
+    incidentNotes: {
+      'inc-collapse-01': [
+        {
+          id: 'note-init-01',
+          incidentId: 'inc-collapse-01',
+          author: 'Incident-Commander',
+          text: 'Initial collapse perimeter secured along Nehru Road. SUGRIV-01 forward scout rover deployed at Alpha Gate.',
+          simTime: 'T-01:40',
+          timestamp: Date.now() - 3600000
+        }
+      ]
+    },
     timeline: [
       {
         id: 'evt-init',
         simTime: 'T+00:00',
         type: 'SYSTEM',
+        category: 'SYSTEM',
         title: 'System Initialized',
         detail: 'In-memory operational session started. Zero external dependencies active.',
-        source: 'SYSTEM'
+        source: 'SYSTEM',
+        incidentId: null,
+        author: 'SYSTEM',
+        timestamp: Date.now()
       }
     ]
   };
@@ -482,17 +606,20 @@ function recalculatePriorities() {
   state.priorities = priorities;
 }
 
-function addTimelineEvent(type, title, detail, source = 'SYSTEM') {
+function addTimelineEvent(type, title, detail, source = 'SYSTEM', incidentId = null, category = 'SYSTEM', author = null) {
   state.timeline.unshift({
     id: `evt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     simTime: formatSimTime(state.sim.elapsedSeconds),
     type,
+    category: category || type,
     title,
     detail,
     source,
+    incidentId: incidentId || null,
+    author: author || 'SYSTEM',
     timestamp: Date.now()
   });
-  if (state.timeline.length > 50) state.timeline.pop();
+  if (state.timeline.length > 100) state.timeline.pop();
 }
 
 // Main Simulation Tick (1 Hz when running)
@@ -933,10 +1060,18 @@ createServer(async (request, response) => {
       if (!team) return jsonResponse(response, 400, { ok: false, error: 'Invalid response team specified' });
 
       const isOverride = Boolean(overrideReason && overrideReason.trim());
+      if (team.status !== 'AVAILABLE' && !isOverride) {
+        return jsonResponse(response, 400, {
+          ok: false,
+          error: `${team.name} is currently busy (status: ${team.status}) on task ${team.currentTaskId || ''}. Active assignment conflict prevented.`
+        });
+      }
+
       const taskId = `task-${Date.now().toString().slice(-4)}`;
 
       const newTask = {
         id: taskId,
+        incidentId: 'inc-collapse-01',
         title: title || 'Inspection Task',
         targetZone: targetZone || 'SEARCH_ZONE',
         targetZoneName: state.site.zones[targetZone]?.name || targetZone,
@@ -960,7 +1095,9 @@ createServer(async (request, response) => {
         'TASK_ASSIGNED',
         `Task Assigned: ${newTask.title}`,
         `${team.name} assigned to ${newTask.targetZoneName}.${isOverride ? ` [OPERATOR OVERRIDE: ${overrideReason}]` : ''}`,
-        'OPERATOR_INPUT'
+        'OPERATOR_INPUT',
+        'inc-collapse-01',
+        'TASK'
       );
 
       recalculatePriorities();
@@ -988,7 +1125,9 @@ createServer(async (request, response) => {
         'TASK_COMPLETED',
         `Task Completed: ${task.title}`,
         `Team completed mission inspection on ${task.targetZoneName}. Note: Linked hazard remains active until verified/resolved separately.`,
-        'OPERATOR_INPUT'
+        'OPERATOR_INPUT',
+        task.incidentId,
+        'TASK'
       );
 
       recalculatePriorities();
@@ -1008,6 +1147,455 @@ createServer(async (request, response) => {
 
       addTimelineEvent('TELEMETRY', 'Rover Movement Commanded', `Manual command: Advance towards ${body.targetZone || 'target'}`, 'OPERATOR_INPUT');
       return jsonResponse(response, 200, { ok: true, state });
+    }
+
+    // =========================================================================
+    // FEATURE 2: MANUAL INCIDENT REPORTING & LIFECYCLE
+    // =========================================================================
+    // POST /api/incident/report
+    if (request.method === 'POST' && pathname === '/api/incident/report') {
+      const body = await parseBody(request);
+      const { title, type, location, reportedSeverity, description, observedTime, lat, lng, schematicPos, operatorName } = body;
+      if (!title || !type || !location) {
+        return jsonResponse(response, 400, { ok: false, error: 'Title, disaster type, and location are required.' });
+      }
+
+      const simTime = formatSimTime(state.sim.elapsedSeconds);
+      const incId = `inc-rep-${Date.now().toString().slice(-5)}`;
+      const severity = reportedSeverity || 'HIGH';
+      const severityLevel = severity === 'CRITICAL' ? 4 : (severity === 'HIGH' ? 3 : 2);
+      const severityLabel = severity === 'CRITICAL' ? '🔴 CRITICAL (Level 4)' : (severity === 'HIGH' ? '🟠 HIGH (Level 3)' : '🟡 MEDIUM (Level 2)');
+      
+      const iconMap = {
+        COLLAPSE: '🏢',
+        FLOOD: '🌊',
+        FIRE: '🔥',
+        LANDSLIDE: '⛰️',
+        HAZMAT: '☣️',
+        MEDICAL: '🚑'
+      };
+
+      const newInc = {
+        id: incId,
+        name: title.trim(),
+        type: type.toUpperCase(),
+        typeName: type.charAt(0).toUpperCase() + type.slice(1).toLowerCase(),
+        icon: iconMap[type.toUpperCase()] || '⚠️',
+        lat: Number(lat) || 19.0980,
+        lng: Number(lng) || 72.8450,
+        schematicPos: schematicPos || { x: 1050 + Math.floor(Math.random() * 300), y: 650 + Math.floor(Math.random() * 300) },
+        location: location.trim(),
+        reportTime: observedTime || simTime,
+        lastUpdate: simTime,
+        severity,
+        severityLevel,
+        severityLabel,
+        verificationStatus: 'UNVERIFIED',
+        lifecycleStatus: 'REPORTED',
+        status: 'REPORTED',
+        statusLabel: 'Reported (Unverified)',
+        situationSummary: description || 'Citizen / field operative preliminary incident dispatch. Verification pending.',
+        affectedZones: 'Awaiting on-site field assessment',
+        assignedTeamId: null,
+        assignedTeamName: 'Unassigned',
+        responseStatus: 'REPORTED',
+        roverAssigned: null,
+        has3DScene: false,
+        isManualReport: true,
+        dataDisclaimer: 'Unverified manual report; operator ground verification required.'
+      };
+
+      state.incidents.unshift(newInc);
+
+      // Operational notification alert
+      const newAlert = {
+        id: `alert-inc-${incId.slice(-5)}`,
+        incidentId: incId,
+        incidentName: newInc.name,
+        zone: newInc.location,
+        type: 'OPERATIONAL',
+        title: `New Incident Reported: ${newInc.name}`,
+        severity: newInc.severity,
+        source: 'MANUAL_REPORT',
+        status: 'ACTIVE_REVIEW',
+        acknowledged: false,
+        acknowledgedAt: null,
+        acknowledgedBy: null,
+        triggeredAt: simTime,
+        triggerReason: `Unverified ${newInc.typeName} report filed by ${operatorName || 'Operator'}. Review and ground verification required.`
+      };
+      state.alerts.unshift(newAlert);
+
+      addTimelineEvent(
+        'INCIDENT_REPORTED',
+        `New Incident Reported: ${newInc.name}`,
+        `${newInc.typeName} at ${newInc.location}. Reported severity: ${newInc.severity}. Operator verification pending.`,
+        'OPERATOR_INPUT',
+        incId,
+        'REPORT',
+        operatorName || 'Operator'
+      );
+
+      return jsonResponse(response, 200, { ok: true, state, incident: newInc });
+    }
+
+    // POST /api/incident/verify
+    if (request.method === 'POST' && pathname === '/api/incident/verify') {
+      const body = await parseBody(request);
+      const incId = body.id || body.incidentId;
+      const inc = state.incidents.find(i => i.id === incId);
+      if (!inc) return jsonResponse(response, 404, { ok: false, error: 'Incident not found' });
+
+      const newVer = body.verificationStatus || 'VERIFIED';
+      inc.verificationStatus = newVer;
+      inc.lastUpdate = formatSimTime(state.sim.elapsedSeconds);
+
+      addTimelineEvent(
+        'VERIFICATION',
+        `Incident ${newVer === 'VERIFIED' ? 'Verified' : 'Rejected'}: ${inc.name}`,
+        `Operator ${body.operatorName || 'Operator'} marked incident as ${newVer}. Notes: ${body.notes || 'None'}`,
+        'OPERATOR_INPUT',
+        inc.id,
+        'VERIFICATION',
+        body.operatorName || 'Operator'
+      );
+
+      return jsonResponse(response, 200, { ok: true, state, incident: inc });
+    }
+
+    // POST /api/incident/lifecycle
+    if (request.method === 'POST' && pathname === '/api/incident/lifecycle') {
+      const body = await parseBody(request);
+      const incId = body.id || body.incidentId;
+      const inc = state.incidents.find(i => i.id === incId);
+      if (!inc) return jsonResponse(response, 404, { ok: false, error: 'Incident not found' });
+
+      const validLifecycles = ['REPORTED', 'ASSESSING', 'RESPONDING', 'CLOSED'];
+      if (!validLifecycles.includes(body.lifecycleStatus)) {
+        return jsonResponse(response, 400, { ok: false, error: 'Invalid lifecycle state' });
+      }
+
+      inc.lifecycleStatus = body.lifecycleStatus;
+      inc.status = body.lifecycleStatus;
+      inc.statusLabel = body.lifecycleStatus.charAt(0) + body.lifecycleStatus.slice(1).toLowerCase();
+      inc.lastUpdate = formatSimTime(state.sim.elapsedSeconds);
+
+      addTimelineEvent(
+        'LIFECYCLE_UPDATE',
+        `Lifecycle Updated: ${inc.name} → ${inc.lifecycleStatus}`,
+        `Incident transitioned to ${inc.lifecycleStatus} by ${body.operatorName || 'Operator'}.`,
+        'OPERATOR_INPUT',
+        inc.id,
+        'REPORT',
+        body.operatorName || 'Operator'
+      );
+
+      return jsonResponse(response, 200, { ok: true, state, incident: inc });
+    }
+
+    // =========================================================================
+    // FEATURE 3: TASK COORDINATION & CONFLICT PREVENTION
+    // =========================================================================
+    // POST /api/task/create
+    if (request.method === 'POST' && pathname === '/api/task/create') {
+      const body = await parseBody(request);
+      const { incidentId, title, description, targetZone, zone, priority, teamId, assignedTeamId, operatorName } = body;
+      if (!title) return jsonResponse(response, 400, { ok: false, error: 'Task title is required.' });
+
+      const effectiveTeamId = teamId || assignedTeamId;
+      const effectiveZone = targetZone || zone || 'PRIMARY_ZONE';
+      const inc = state.incidents.find(i => i.id === incidentId) || state.incidents[0];
+      const taskId = `task-${Date.now().toString().slice(-4)}`;
+      let taskStatus = 'PENDING';
+      let teamName = 'Unassigned';
+
+      if (effectiveTeamId) {
+        const team = state.teams[effectiveTeamId];
+        if (!team) return jsonResponse(response, 400, { ok: false, error: 'Specified team not found.' });
+        if (team.status !== 'AVAILABLE') {
+          return jsonResponse(response, 400, {
+            ok: false,
+            error: `${team.name} is currently busy (status: ${team.status}) on task ${team.currentTaskId || ''}. Active assignment conflict prevented.`
+          });
+        }
+        team.status = 'ASSIGNED';
+        team.currentTaskId = taskId;
+        team.activeIncidentId = inc.id;
+        taskStatus = 'ASSIGNED';
+        teamName = team.name;
+      }
+
+      const newTask = {
+        id: taskId,
+        incidentId: inc.id,
+        incidentName: inc.name,
+        title: title.trim(),
+        description: description || 'Field task assignment',
+        targetZone: effectiveZone,
+        targetZoneName: state.site?.zones[effectiveZone]?.name || effectiveZone,
+        priority: priority || 'MEDIUM',
+        teamId: effectiveTeamId || null,
+        teamName,
+        status: taskStatus, // 'PENDING', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED'
+        assignedAt: effectiveTeamId ? formatSimTime(state.sim.elapsedSeconds) : null,
+        completedAt: null,
+        notes: null
+      };
+
+      state.tasks.unshift(newTask);
+
+      addTimelineEvent(
+        'TASK_CREATED',
+        `Task Created: ${newTask.title}`,
+        `Task for ${inc.name}. Status: ${newTask.status}. Assigned: ${teamName}. Priority: ${newTask.priority}`,
+        'OPERATOR_INPUT',
+        inc.id,
+        'TASK',
+        operatorName || 'Operator'
+      );
+
+      recalculatePriorities();
+      return jsonResponse(response, 200, { ok: true, state, task: newTask });
+    }
+
+    // POST /api/task/status
+    if (request.method === 'POST' && pathname === '/api/task/status') {
+      const body = await parseBody(request);
+      const taskId = body.id || body.taskId;
+      const task = state.tasks.find(t => t.id === taskId);
+      if (!task) return jsonResponse(response, 404, { ok: false, error: 'Task not found' });
+
+      const newStatus = body.status;
+      const simTime = formatSimTime(state.sim.elapsedSeconds);
+      const effectiveTeamId = body.teamId || body.assignedTeamId;
+
+      // Handle team assignment if assigning team now
+      if (effectiveTeamId && (!task.teamId || task.teamId !== effectiveTeamId)) {
+        const team = state.teams[effectiveTeamId];
+        if (!team) return jsonResponse(response, 400, { ok: false, error: 'Specified team not found.' });
+        if (team.status !== 'AVAILABLE') {
+          return jsonResponse(response, 400, {
+            ok: false,
+            error: `${team.name} is currently busy (status: ${team.status}) on task ${team.currentTaskId || ''}. Active assignment conflict prevented.`
+          });
+        }
+        if (task.teamId && state.teams[task.teamId]) {
+          state.teams[task.teamId].status = 'AVAILABLE';
+          state.teams[task.teamId].currentTaskId = null;
+        }
+        team.status = 'ASSIGNED';
+        team.currentTaskId = task.id;
+        team.activeIncidentId = task.incidentId;
+        task.teamId = team.id;
+        task.teamName = team.name;
+        task.assignedAt = simTime;
+      }
+
+      task.status = newStatus;
+      if (body.notes) task.notes = body.notes;
+
+      if (newStatus === 'COMPLETED') {
+        task.completedAt = simTime;
+        if (task.teamId && state.teams[task.teamId]) {
+          state.teams[task.teamId].status = 'AVAILABLE';
+          state.teams[task.teamId].currentTaskId = null;
+        }
+      }
+
+      addTimelineEvent(
+        'TASK_STATUS',
+        `Task ${newStatus}: ${task.title}`,
+        `Task status updated to ${newStatus} by ${body.operatorName || 'Operator'}. Hazard alerts remain active.`,
+        'OPERATOR_INPUT',
+        task.incidentId,
+        'TASK',
+        body.operatorName || 'Operator'
+      );
+
+      recalculatePriorities();
+      return jsonResponse(response, 200, { ok: true, state, task });
+    }
+
+    // =========================================================================
+    // FEATURE 4: RELIEF REQUEST TRACKING
+    // =========================================================================
+    // POST /api/relief/create
+    if (request.method === 'POST' && pathname === '/api/relief/create') {
+      const body = await parseBody(request);
+      const { incidentId, itemType, quantity, unit, destination, priority, assignedTeamId, teamId, notes, operatorName } = body;
+      const inc = state.incidents.find(i => i.id === incidentId) || state.incidents[0];
+      const simTime = formatSimTime(state.sim.elapsedSeconds);
+
+      const labels = {
+        WATER: 'Potable Drinking Water',
+        FIRST_AID: 'First-Aid & Trauma Kits',
+        BLANKETS: 'Blankets & Thermal Bedding',
+        TRANSPORT: 'Emergency Evacuation Transport',
+        FOOD: 'Emergency Food Rations',
+        GENERATOR: 'Emergency Power Generators',
+        POWER: 'Emergency Power Generators'
+      };
+
+      const relId = `rel-${Date.now().toString().slice(-4)}`;
+      const targetTeamId = assignedTeamId || teamId || null;
+      let targetTeamName = 'Unassigned';
+      let relStatus = 'REQUESTED';
+
+      if (targetTeamId && state.teams[targetTeamId]) {
+        targetTeamName = state.teams[targetTeamId].name;
+        relStatus = 'ASSIGNED';
+      }
+
+      const newRel = {
+        id: relId,
+        incidentId: inc.id,
+        incidentName: inc.name,
+        itemType: (itemType || 'WATER').toUpperCase(),
+        itemLabel: labels[(itemType || 'WATER').toUpperCase()] || itemType,
+        quantity: Number(quantity) || 100,
+        unit: unit || 'units',
+        destination: destination || inc.location,
+        priority: priority || 'HIGH',
+        status: relStatus, // 'REQUESTED', 'ASSIGNED', 'DELIVERED'
+        assignedTeamId: targetTeamId,
+        assignedTeamName: targetTeamName,
+        requestedAt: simTime,
+        deliveredAt: null,
+        notes: notes || 'Simulated disaster relief request.',
+        simulated: true,
+        disclaimer: 'Simulated coordination only; does not represent physical stock or real-world dispatch.'
+      };
+
+      state.reliefRequests.unshift(newRel);
+
+      // Create notification alert in Central Inbox
+      const reliefAlert = {
+        id: `alert-rel-${newRel.id}`,
+        incidentId: inc.id,
+        incidentName: inc.name,
+        zone: newRel.destination,
+        type: 'RELIEF',
+        title: `Relief Requested: ${newRel.quantity} ${newRel.unit} ${newRel.itemLabel}`,
+        severity: newRel.priority === 'CRITICAL' ? 'CRITICAL' : 'HIGH',
+        source: 'RELIEF_COORDINATION',
+        status: 'ACTIVE_REVIEW',
+        acknowledged: false,
+        acknowledgedAt: null,
+        acknowledgedBy: null,
+        triggeredAt: simTime,
+        triggerReason: `Relief logistics request logged for ${inc.name}. Destination: ${newRel.destination}. Priority: ${newRel.priority}.`
+      };
+      state.alerts.unshift(reliefAlert);
+
+      addTimelineEvent(
+        'RELIEF_REQUESTED',
+        `Relief Requested: ${newRel.quantity} ${newRel.unit} ${newRel.itemLabel}`,
+        `Destination: ${newRel.destination} (${inc.name}). Priority: ${newRel.priority}. [SIMULATED COORDINATION]`,
+        'OPERATOR_INPUT',
+        inc.id,
+        'RELIEF',
+        operatorName || 'Operator'
+      );
+
+      return jsonResponse(response, 200, { ok: true, state, relief: newRel });
+    }
+
+    // POST /api/relief/status
+    if (request.method === 'POST' && pathname === '/api/relief/status') {
+      const body = await parseBody(request);
+      const reliefId = body.id || body.reliefId;
+      const rel = state.reliefRequests.find(r => r.id === reliefId);
+      if (!rel) return jsonResponse(response, 404, { ok: false, error: 'Relief request not found' });
+
+      const newStatus = body.status;
+      const simTime = formatSimTime(state.sim.elapsedSeconds);
+
+      rel.status = newStatus;
+      if (newStatus === 'ASSIGNED') {
+        rel.assignedTeamId = body.assignedTeamId || body.teamId || 'TEAM_ATLAS';
+        rel.assignedTeamName = state.teams[rel.assignedTeamId]?.name || 'Team Atlas (Logistics & Transport)';
+      } else if (newStatus === 'DELIVERED') {
+        rel.deliveredAt = simTime;
+      }
+
+      addTimelineEvent(
+        'RELIEF_UPDATE',
+        `Relief ${newStatus}: ${rel.itemLabel}`,
+        `Relief shipment status updated to ${newStatus} by ${body.operatorName || 'Operator'}.`,
+        'OPERATOR_INPUT',
+        rel.incidentId,
+        'RELIEF',
+        body.operatorName || 'Operator'
+      );
+
+      return jsonResponse(response, 200, { ok: true, state, relief: rel });
+    }
+
+    // =========================================================================
+    // FEATURE 5: CENTRAL ALERT INBOX & ACKNOWLEDGEMENT
+    // =========================================================================
+    // POST /api/alert/acknowledge
+    if (request.method === 'POST' && pathname === '/api/alert/acknowledge') {
+      const body = await parseBody(request);
+      const alertId = body.id || body.alertId;
+      const alert = state.alerts.find(a => a.id === alertId);
+      if (!alert) return jsonResponse(response, 404, { ok: false, error: 'Alert not found' });
+
+      alert.acknowledged = true;
+      alert.acknowledgedAt = formatSimTime(state.sim.elapsedSeconds);
+      alert.acknowledgedBy = body.operatorName || 'Operator';
+
+      addTimelineEvent(
+        'ALERT_ACKNOWLEDGED',
+        `Alert Acknowledged: ${alert.title}`,
+        `Operator ${alert.acknowledgedBy} acknowledged alert. Note: Underlying hazard or condition remains active.`,
+        'OPERATOR_INPUT',
+        alert.incidentId,
+        'SYSTEM',
+        alert.acknowledgedBy
+      );
+
+      return jsonResponse(response, 200, { ok: true, state, alert });
+    }
+
+    // =========================================================================
+    // FEATURE 6: INCIDENT NOTES AND ACTIVITY FEED
+    // =========================================================================
+    // POST /api/incident/note
+    if (request.method === 'POST' && pathname === '/api/incident/note') {
+      const body = await parseBody(request);
+      const { incidentId, text, note, author } = body;
+      const noteContent = text || note;
+      if (!incidentId || !noteContent || !noteContent.trim()) {
+        return jsonResponse(response, 400, { ok: false, error: 'Incident ID and note content required.' });
+      }
+
+      const noteObj = {
+        id: `note-${Date.now().toString().slice(-4)}`,
+        incidentId,
+        author: author ? author.trim() : 'Operator',
+        text: noteContent.trim(),
+        simTime: formatSimTime(state.sim.elapsedSeconds),
+        timestamp: Date.now()
+      };
+
+      if (!state.incidentNotes) state.incidentNotes = {};
+      if (!state.incidentNotes[incidentId]) state.incidentNotes[incidentId] = [];
+      state.incidentNotes[incidentId].unshift(noteObj);
+
+      const inc = state.incidents.find(i => i.id === incidentId);
+
+      addTimelineEvent(
+        'NOTE_ADDED',
+        `Note Added to ${inc ? inc.name : incidentId}`,
+        `"${noteObj.text}" — ${noteObj.author}`,
+        'OPERATOR_INPUT',
+        incidentId,
+        'NOTE',
+        noteObj.author
+      );
+
+      return jsonResponse(response, 200, { ok: true, state, note: noteObj });
     }
 
     return jsonResponse(response, 404, { ok: false, error: 'API endpoint not found' });

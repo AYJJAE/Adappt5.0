@@ -11,17 +11,6 @@
 </head>
 <body class="mode-map">
 
-  <!-- PERSISTENT SIMULATED DEMO DATA INDICATOR -->
-  <aside class="sim-banner" role="banner" aria-label="Simulation notice">
-    <div class="banner-inner">
-      <span class="banner-pill">SIMULATED DEMO DATA</span>
-      <strong>DISASTER RECONNAISSANCE PLATFORM</strong>
-      <span class="banner-divider">|</span>
-      <span>FICTIONAL DEMO INCIDENTS — NOT REAL DISASTERS</span>
-      <span class="banner-divider">|</span>
-      <span>SERVER MEMORY ONLY</span>
-    </div>
-  </aside>
 
   <!-- TOP COMPACT NAVIGATION & FILTER BAR -->
   <header class="app-topbar">
@@ -36,13 +25,20 @@
     <!-- INCIDENT FILTERS -->
     <div class="filters-bar" aria-label="Incident filters">
       <div class="filter-item">
+        <label for="filter-search">Search:</label>
+        <input type="search" id="filter-search" class="filter-input" placeholder="Name or location..." aria-label="Search incidents" style="width:130px;">
+      </div>
+
+      <div class="filter-item">
         <label for="filter-type">Type:</label>
         <select id="filter-type" class="filter-select">
-          <option value="ALL">All Types (4)</option>
+          <option value="ALL">All Types</option>
           <option value="COLLAPSE">🏢 Building Collapse</option>
           <option value="FLOOD">🌊 Flooding</option>
           <option value="FIRE">🔥 Fire</option>
           <option value="LANDSLIDE">⛰️ Landslide</option>
+          <option value="HAZMAT">☣️ Hazmat</option>
+          <option value="MEDICAL">🚑 Medical</option>
         </select>
       </div>
 
@@ -57,25 +53,51 @@
       </div>
 
       <div class="filter-item">
-        <label for="filter-status">Status:</label>
+        <label for="filter-status">Response Status:</label>
         <select id="filter-status" class="filter-select">
           <option value="ALL">All Statuses</option>
-          <option value="ACTIVE_SCOUTING">Active Scouting</option>
-          <option value="MONITORING">Monitoring</option>
-          <option value="CONTAINMENT">Containment</option>
-          <option value="ASSESSMENT">Assessment</option>
+          <option value="REPORTED">Reported (Unverified)</option>
+          <option value="ASSESSING">Assessing</option>
+          <option value="RESPONDING">Responding</option>
+          <option value="CLOSED">Closed</option>
+          <option value="ACTIVE_SCOUTING">Active Scouting (Legacy)</option>
+          <option value="MONITORING">Monitoring (Legacy)</option>
+          <option value="CONTAINMENT">Containment (Legacy)</option>
+          <option value="ASSESSMENT">Assessment (Legacy)</option>
         </select>
       </div>
+
+      <button class="btn btn-xs btn-outline" id="btn-clear-filters" type="button" title="Clear all search queries and filters">
+        ✕ Clear
+      </button>
     </div>
 
     <!-- TOPBAR METRICS & CONTROLS -->
     <div class="topbar-right">
-      <div class="sim-clock-display" id="sim-clock" aria-live="polite">T+00:00 · IDLE</div>
-      <button class="btn btn-sm btn-primary" id="btn-topbar-guided-demo" type="button" title="Start guided end-to-end walkthrough">
-        ▶ Start Guided Demo
+      <button class="operator-chip" id="btn-session-operator" type="button" title="Operator Session Display Name (Click to edit)">
+        👤 <span id="label-operator-name">Operator-1</span>
       </button>
-      <button class="btn btn-sm btn-outline" id="btn-toggle-demo-dock" type="button" title="Toggle simulation controls">
-        ⚡ Demo Dock
+      <button class="btn btn-sm btn-primary" id="btn-open-report-incident" type="button" title="Submit manual field incident report">
+        🚨 Report Incident
+      </button>
+      <button class="btn btn-sm btn-outline alert-inbox-btn" id="btn-open-alert-inbox" type="button" title="Central Alert and Notification Inbox">
+        📬 Alerts <span class="badge-count" id="inbox-unread-count">0</span>
+      </button>
+      <button class="btn btn-sm btn-outline" id="btn-open-relief-dialog" type="button" title="Relief request tracking (Simulated logistics)">
+        🚚 Relief (<span id="relief-count-badge">0</span>)
+      </button>
+      <button class="btn btn-sm btn-outline" id="btn-toggle-incident-list" type="button" title="Toggle incident list directory">
+        📋 Incidents (<span id="incidents-count-badge">8</span>)
+      </button>
+      <div class="sim-clock-display" id="sim-clock" aria-live="polite">T+00:00 · IDLE</div>
+      <button class="btn btn-sm btn-outline" id="btn-about-demo" type="button" title="Prototype scope, hardware intent, and simulation notes">
+        ℹ About Demo
+      </button>
+      <button class="btn btn-sm btn-primary" id="btn-topbar-guided-demo" type="button" title="Start interactive 5-step guided walkthrough">
+        ▶ Guided Demo
+      </button>
+      <button class="btn btn-sm btn-outline" id="btn-toggle-demo-dock" type="button" title="Toggle collapsible Demo Controls">
+        ⚡ Demo Controls
       </button>
     </div>
   </header>
@@ -575,91 +597,227 @@
   <!-- =========================================================================
        INCIDENT SELECTION SIDE PANEL
        ========================================================================= -->
-  <aside class="incident-side-panel closed" id="incident-side-panel" aria-label="Incident details">
+  <!-- =========================================================================
+       INCIDENT DIRECTORY LIST DRAWER (Synchronized with Map & Filters)
+       ========================================================================= -->
+  <aside class="incident-directory-panel hidden" id="incident-directory-panel" aria-label="Incident directory">
     <header class="panel-header">
       <div class="panel-title-wrap">
-        <span class="incident-type-tag" id="panel-incident-type">BUILDING COLLAPSE</span>
-        <h2 id="panel-incident-name">Station Road Arcade Collapse</h2>
+        <h3 style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;">
+          <span>📋 Regional Incident Directory</span>
+          <span class="sim-badge-inline">[SIMULATED]</span>
+        </h3>
+        <span style="font-size:10.5px;color:var(--text-muted);" id="directory-filter-hint">Synchronized with search and map filters</span>
       </div>
-      <button class="btn-close" id="btn-close-side-panel" type="button" aria-label="Close side panel">✕</button>
+      <button class="btn-close" id="btn-close-directory" type="button" aria-label="Close directory">✕</button>
     </header>
+    <div class="directory-body" id="incident-directory-list">
+      <!-- Dynamically populated or shows empty state -->
+    </div>
+  </aside>
 
-    <div class="panel-body">
-      <!-- Status Badges -->
-      <div class="badges-row">
-        <span class="badge-severity critical" id="panel-severity">🔴 CRITICAL (Level 4)</span>
-        <span class="badge-verification" id="panel-verification">UNVERIFIED FIELD REPORT</span>
-        <span class="badge-status" id="panel-status">ACTIVE SCOUTING</span>
-      </div>
+  <!-- =========================================================================
+       INCIDENT SELECTION SIDE PANEL
+       ========================================================================= -->
+  <aside class="incident-side-panel closed" id="incident-side-panel" aria-label="Incident details">
+    <!-- Empty State when no incident is selected -->
+    <div class="incident-empty-state hidden" id="incident-empty-state">
+      <div style="font-size:32px;margin-bottom:8px;">🗺️</div>
+      <h3>No Incident Selected</h3>
+      <p>Select an incident pin on the tactical map or directory list to inspect hazard status, response lifecycle, tasks, and relief tracking.</p>
+    </div>
 
-      <!-- Core Metadata -->
-      <div class="meta-section">
-        <div class="meta-row">
-          <span class="m-label">Location:</span>
-          <span class="m-val" id="panel-location">Nehru Road, Vile Parle East, Mumbai</span>
+    <!-- Active Incident Details Container -->
+    <div id="incident-active-container">
+      <header class="panel-header">
+        <div class="panel-title-wrap">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+            <span class="incident-type-tag" id="panel-incident-type">BUILDING COLLAPSE</span>
+            <span class="sim-badge-inline">[SIMULATED DATA]</span>
+          </div>
+          <h2 id="panel-incident-name">Station Road Arcade Collapse</h2>
         </div>
-        <div class="meta-row">
-          <span class="m-label">Reported:</span>
-          <span class="m-val" id="panel-report-time">T-01:45</span>
-        </div>
-        <div class="meta-row">
-          <span class="m-label">Last Telemetry Update:</span>
-          <span class="m-val" id="panel-last-update">T+00:00</span>
-        </div>
-      </div>
+        <button class="btn-close" id="btn-close-side-panel" type="button" aria-label="Close side panel">✕</button>
+      </header>
 
-      <!-- Situation Summary -->
-      <div class="panel-card summary-card">
-        <h3>Situation Summary</h3>
-        <p id="panel-summary">
-          Reported structural pancake with void space entrapment risk. Unmanned forward reconnaissance dispatched to verify internal passages.
-        </p>
-        <small class="disclaimer-text" id="panel-disclaimer">
-          ⚠ Simulated observations; unverified structural estimates. No official casualty count confirmed.
-        </small>
-      </div>
-
-      <!-- Affected Zones -->
-      <div class="panel-card">
-        <h3>Potentially Affected Zones & Approaches</h3>
-        <p class="affected-text" id="panel-affected">
-          Approach Alpha (North Tunnel), Approach Bravo (South Passage), Sector C Target Area
-        </p>
-      </div>
-
-      <!-- Assigned Response Team -->
-      <div class="panel-card team-card">
-        <div class="card-head">
-          <h3>Assigned Response Team</h3>
-          <span class="team-state" id="panel-team-status">ON SCENE</span>
+      <div class="panel-body">
+        <!-- Status Badges -->
+        <div class="badges-row">
+          <span class="badge-severity critical" id="panel-severity">🔴 CRITICAL (Level 4)</span>
+          <span class="badge-verification" id="panel-verification">UNVERIFIED</span>
+          <span class="badge-status" id="panel-status">REPORTED</span>
         </div>
-        <strong id="panel-team-name">Team Vanguard (Recon & Hazmat)</strong>
-      </div>
 
-      <!-- Rover Connection & Live Telemetry -->
-      <div class="panel-card rover-card">
-        <div class="card-head">
-          <h3>Ground Recon Rover</h3>
-          <span class="conn-pill" id="panel-rover-conn">CONNECTED</span>
-        </div>
-        <div class="rover-info" id="panel-rover-info">
-          <div class="rover-telemetry-mini">
-            <div>Unit: <b id="panel-rover-id">SUGRIV-01</b></div>
-            <div>Zone: <b id="panel-rover-zone">Entry Gate</b></div>
-            <div>Spot Temp: <b id="panel-rover-temp">22.0 °C</b></div>
-            <div>LiDAR Clearance: <b id="panel-rover-lidar">18.4 m</b></div>
+        <!-- Verification Action Bar (Visible if unverified or to allow review) -->
+        <div class="panel-action-bar" id="panel-verification-bar">
+          <span class="bar-lbl">Ground Verification:</span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-xs btn-success" id="btn-panel-verify-inc" type="button" title="Operator confirms ground truth of this report">
+              ✓ Verify Incident
+            </button>
+            <button class="btn btn-xs btn-outline" id="btn-panel-reject-inc" type="button" title="Mark as false report or duplicate">
+              ✕ Reject Report
+            </button>
           </div>
         </div>
-      </div>
 
-      <!-- 3D SITE VIEW ACTION -->
-      <div class="site-view-action-box">
-        <button class="btn btn-primary btn-block btn-3d-action" id="btn-open-3d-site" type="button">
-          📐 Open 3D Site View
-        </button>
-        <div class="site-3d-unavailable hidden" id="site-3d-unavailable-msg">
-          <span>ℹ 3D scene unavailable — Map and telemetry demonstration only.</span>
+        <!-- Lifecycle Status Stepper / Selector -->
+        <div class="lifecycle-select-bar">
+          <label for="panel-lifecycle-select" class="bar-lbl">Response Lifecycle:</label>
+          <select id="panel-lifecycle-select" class="filter-select" style="flex:1;">
+            <option value="REPORTED">Reported</option>
+            <option value="ASSESSING">Assessing</option>
+            <option value="RESPONDING">Responding</option>
+            <option value="CLOSED">Closed</option>
+          </select>
         </div>
+
+        <!-- Panel Navigation Tabs -->
+        <div class="panel-tab-bar" role="tablist">
+          <button class="panel-tab active" id="tab-btn-overview" data-tab="overview" type="button">Overview</button>
+          <button class="panel-tab" id="tab-btn-tasks" data-tab="tasks" type="button">Tasks (<span id="panel-tasks-count">0</span>)</button>
+          <button class="panel-tab" id="tab-btn-relief" data-tab="relief" type="button">Relief (<span id="panel-relief-count">0</span>)</button>
+          <button class="panel-tab" id="tab-btn-history" data-tab="history" type="button">Notes & Activity (<span id="panel-history-count">0</span>)</button>
+        </div>
+
+        <!-- TAB 1: OVERVIEW -->
+        <div class="panel-tab-pane active" id="tab-pane-overview">
+          <!-- Core Metadata -->
+          <div class="meta-section">
+            <div class="meta-row">
+              <span class="m-label">Location:</span>
+              <span class="m-val" id="panel-location">Nehru Road, Vile Parle East, Mumbai</span>
+            </div>
+            <div class="meta-row">
+              <span class="m-label">Reported:</span>
+              <span class="m-val" id="panel-report-time">T-01:45</span>
+            </div>
+            <div class="meta-row">
+              <span class="m-label">Last Telemetry:</span>
+              <span class="m-val" id="panel-last-update">T+00:00</span>
+            </div>
+          </div>
+
+          <!-- Situation Summary -->
+          <div class="panel-card summary-card">
+            <h3>Situation Summary</h3>
+            <p id="panel-summary">
+              Reported structural pancake with void space entrapment risk. Unmanned forward reconnaissance dispatched to verify internal passages.
+            </p>
+            <small class="disclaimer-text" id="panel-disclaimer">
+              ⚠ Real-time sensor observations; unverified structural estimates pending search team egress.
+            </small>
+          </div>
+
+          <!-- Affected Zones -->
+          <div class="panel-card">
+            <h3>Potentially Affected Zones & Approaches</h3>
+            <p class="affected-text" id="panel-affected">
+              Approach Alpha (North Tunnel), Approach Bravo (South Passage), Sector C Target Area
+            </p>
+          </div>
+
+          <!-- Assigned Response Team -->
+          <div class="panel-card team-card">
+            <div class="card-head">
+              <h3>Primary Response Team</h3>
+              <span class="team-state" id="panel-team-status">ON SCENE</span>
+            </div>
+            <strong id="panel-team-name">Team Vanguard (Recon & Hazmat)</strong>
+          </div>
+
+          <!-- Rover Connection & Live Telemetry -->
+          <div class="panel-card rover-card">
+            <div class="card-head">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <h3>Ground Recon Rover</h3>
+                <span class="sim-badge-inline" style="font-size:8.5px;">[SIMULATED TELEMETRY]</span>
+              </div>
+              <span class="conn-pill" id="panel-rover-conn">CONNECTED</span>
+            </div>
+            <div class="rover-info" id="panel-rover-info">
+              <div class="rover-telemetry-mini">
+                <div>Unit: <b id="panel-rover-id">SUGRIV-01</b></div>
+                <div>Zone: <b id="panel-rover-zone">Entry Gate</b></div>
+                <div>Spot Temp: <b id="panel-rover-temp">22.0 °C</b></div>
+                <div>LiDAR Clearance: <b id="panel-rover-lidar">18.4 m</b></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3D SITE VIEW ACTION (Primary Incident Action) -->
+          <div class="site-view-action-box">
+            <button class="btn btn-primary btn-block btn-3d-action" id="btn-open-3d-site" type="button">
+              📐 Open 3D Site (Simulated)
+            </button>
+            <div class="site-3d-unavailable hidden" id="site-3d-unavailable-msg">
+              <span>ℹ 3D scene unavailable for this incident — Simulated 3D model active for Station Road Arcade Collapse only.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: TASKS & COORDINATION -->
+        <div class="panel-tab-pane" id="tab-pane-tasks">
+          <div class="tab-pane-header">
+            <div>
+              <h3>Incident Tasks</h3>
+              <p style="font-size:11px;color:var(--text-muted);">
+                Coordinate field assignments. Note: Completing a task does NOT automatically resolve related hazards.
+              </p>
+            </div>
+            <button class="btn btn-xs btn-primary" id="btn-panel-create-task" type="button">+ New Task</button>
+          </div>
+          <div class="tasks-container" id="panel-tasks-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- TAB 3: RELIEF TRACKING -->
+        <div class="panel-tab-pane" id="tab-pane-relief">
+          <div class="tab-pane-header">
+            <div>
+              <h3>Relief Logistics</h3>
+              <p style="font-size:11px;color:var(--color-warning);">
+                [SIMULATED COORDINATION — Fictional resources only; zero actual stock claimed]
+              </p>
+            </div>
+            <button class="btn btn-xs btn-primary" id="btn-panel-create-relief" type="button">+ Request Relief</button>
+          </div>
+          <div class="relief-container" id="panel-relief-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- TAB 4: OPERATOR NOTES & ACTIVITY FEED -->
+        <div class="panel-tab-pane" id="tab-pane-history">
+          <div class="add-note-card">
+            <label for="input-incident-note" style="font-size:11px;color:var(--text-secondary);font-weight:600;display:block;margin-bottom:4px;">
+              Add Operator Note:
+            </label>
+            <div style="display:flex;gap:6px;">
+              <input type="text" id="input-incident-note" placeholder="Enter log entry or field note..." class="filter-input" style="flex:1;">
+              <button class="btn btn-xs btn-primary" id="btn-panel-post-note" type="button">Post Note</button>
+            </div>
+          </div>
+
+          <div class="activity-filter-row">
+            <span style="font-size:11px;color:var(--text-muted);">Filter:</span>
+            <select id="filter-incident-activity" class="filter-select" style="font-size:11px;padding:2px 6px;">
+              <option value="ALL">All Activity</option>
+              <option value="NOTE">Notes Only</option>
+              <option value="TASK">Tasks</option>
+              <option value="RELIEF">Relief</option>
+              <option value="VERIFICATION">Verification</option>
+              <option value="REPORT">Reports</option>
+              <option value="SYSTEM">System</option>
+            </select>
+          </div>
+
+          <div class="incident-activity-feed" id="panel-activity-feed">
+            <!-- Dynamically populated isolated activity records -->
+          </div>
+        </div>
+
       </div>
     </div>
   </aside>
@@ -676,7 +834,7 @@
         </button>
         <div class="site-title-group">
           <h2 id="site-3d-title">Station Road Arcade Collapse — Site Workspace</h2>
-          <span class="site-sim-badge">SIMULATED 3D SITE — NOT A LIVE RECONSTRUCTION</span>
+          <span class="site-sim-badge">SIMULATED 3D SITE // NOT LIVE RECONSTRUCTION</span>
         </div>
       </div>
 
@@ -686,7 +844,7 @@
           🛰 Interactive 3D Site
         </button>
         <button class="btn btn-sm btn-outline" id="btn-cam-rover" type="button">
-          📷 Simulated Rover Camera
+          📷 Rover Optical Camera
         </button>
       </div>
 
@@ -708,12 +866,12 @@
         ⬅ Back to Incident Map
       </button>
 
-      <!-- GUIDED DEMONSTRATION INSTRUCTION BANNER -->
+      <!-- TACTICAL SEQUENCE INSTRUCTION BANNER -->
       <div class="guided-demo-banner hidden" id="guided-demo-banner" role="alert" aria-live="assertive">
-        <span class="demo-step-badge" id="demo-step-badge">STEP 1 OF 5</span>
-        <span class="demo-step-text" id="demo-step-text">Starting guided demonstration...</span>
-        <button class="btn btn-xs btn-primary" id="btn-next-demo-step" type="button">Next Step ➡</button>
-        <button class="btn btn-xs btn-outline" id="btn-cancel-demo" type="button">✕ Exit Demo</button>
+        <span class="demo-step-badge" id="demo-step-badge">PHASE 1 OF 5</span>
+        <span class="demo-step-text" id="demo-step-text">Executing tactical mission sequence...</span>
+        <button class="btn btn-xs btn-primary" id="btn-next-demo-step" type="button">Next Phase ➡</button>
+        <button class="btn btn-xs btn-outline" id="btn-cancel-demo" type="button">✕ Dismiss</button>
       </div>
 
       <div id="three-container" class="three-canvas-container"></div>
@@ -726,13 +884,13 @@
         <span>Click zone/rubble for inspection</span>
       </div>
 
-      <!-- SIMULATED ROVER CAMERA HUD OVERLAY (Visible in Rover Cam mode) -->
+      <!-- ROVER CAMERA HUD OVERLAY (Visible in Rover Cam mode) -->
       <div class="rover-hud-overlay hidden" id="rover-hud-overlay">
         <div class="hud-top">
-          <span class="hud-label">SIMULATED ROVER CAMERA VIEW — NOT LIVE FOOTAGE</span>
+          <span class="hud-label">LIVE OPTICAL RECON // SUGRIV-01 MAST CAM</span>
           <div class="hud-controls">
             <button class="btn btn-xs btn-danger-outline" id="btn-hud-rover-stop" type="button" title="Immediately halt rover movement">⏹ STOP ROVER</button>
-            <span class="hud-rec">● REC [SIMULATED]</span>
+            <span class="hud-rec">● REC [LIVE FEED]</span>
           </div>
         </div>
 
@@ -756,7 +914,7 @@
             <span class="h-val" id="hud-conn-health">CONNECTED (-63 dBm)</span>
           </div>
           <div class="hud-metric">
-            <span class="h-lbl">SIM TIME</span>
+            <span class="h-lbl">MISSION TIME</span>
             <span class="h-val" id="hud-sim-time">T+00:00</span>
           </div>
         </div>
@@ -808,13 +966,16 @@
   </section>
 
   <!-- =========================================================================
-       COLLAPSIBLE SIMULATION DEMO DOCK
+       COLLAPSIBLE TACTICAL OPERATIONS CONSOLE
        ========================================================================= -->
-  <aside class="demo-dock-card" id="demo-dock-card" aria-label="Demo simulation controls">
+  <!-- =========================================================================
+       COLLAPSIBLE DEMO CONTROLS SECTION
+       ========================================================================= -->
+  <aside class="demo-dock-card" id="demo-dock-card" aria-label="Demo controls console">
     <header class="dock-header">
       <div class="dock-title">
         <span class="radar-dot"></span>
-        <strong>Scenario Controls</strong>
+        <strong>Demo Controls</strong>
       </div>
       <div class="dock-header-actions">
         <div class="speed-btns">
@@ -828,25 +989,25 @@
 
     <div class="dock-body" id="dock-body-content">
       <div class="dock-btn-grid">
-        <button class="btn btn-sm btn-primary" id="btn-auto-demo" type="button" title="Start interactive 5-step guided walkthrough">
-          ▶ Start Guided Demo
+        <button class="btn btn-sm btn-primary" id="btn-auto-demo" type="button" title="Execute automated tactical sequence">
+          ▶ Run Mission Sequence
         </button>
         <button class="btn btn-sm btn-outline" id="btn-step-1" type="button">
-          1. Start Telemetry
+          1. Deploy Rover
         </button>
         <button class="btn btn-sm btn-outline" id="btn-step-2" type="button">
-          2. Trigger Blockage
+          2. Detect Obstacle
         </button>
         <button class="btn btn-sm btn-outline" id="btn-step-3" type="button">
-          3. Trigger Temp Rise
+          3. Detect Thermal Spike
         </button>
       </div>
 
       <div class="dock-footer-actions">
         <button class="btn btn-xs btn-danger-outline" id="btn-rover-stop" type="button" title="Immediately halt rover movement">⏹ STOP</button>
         <button class="btn btn-xs btn-outline" id="btn-play-pause" type="button">⏸ Pause</button>
-        <button class="btn btn-xs btn-outline" id="btn-toggle-conn" type="button">⚡ Drop Link</button>
-        <button class="btn btn-xs btn-danger-outline" id="btn-reset" type="button">↺ Reset Demo</button>
+        <button class="btn btn-xs btn-outline" id="btn-toggle-conn" type="button">⚡ Disconnect RF</button>
+        <button class="btn btn-xs btn-danger-outline" id="btn-reset" type="button">↺ Reset Mission</button>
       </div>
     </div>
   </aside>
@@ -861,6 +1022,10 @@
         <button class="btn-close" id="btn-close-modal" type="button" aria-label="Close dialog">✕</button>
       </header>
       <div class="modal-body">
+        <div class="warning-banner hidden" id="task-team-warning">
+          <strong>⚠️ No Response Teams Available</strong>
+          <div>All teams are currently deployed. An Operator Override Rationale is required to reassign or dual-task units.</div>
+        </div>
         <div class="form-group">
           <label for="task-title-input">Task Title</label>
           <input type="text" id="task-title-input" required placeholder="e.g. Inspect Thermal Hotspot">
@@ -884,14 +1049,14 @@
         <div class="form-group">
           <label for="task-override-input">
             Operator Override Rationale
-            <small class="helper-text">(Required if overriding system recommendation)</small>
+            <small class="helper-text">(Required if overriding system recommendation or reassigning busy teams)</small>
           </label>
           <input type="text" id="task-override-input" placeholder="e.g. Deviation approved due to rapid squad proximity">
         </div>
       </div>
       <footer class="modal-footer">
         <button class="btn btn-outline" id="btn-cancel-task" type="button">Cancel</button>
-        <button class="btn btn-primary" type="submit">Dispatch Task</button>
+        <button class="btn btn-primary" id="btn-submit-task" type="submit">Dispatch Task</button>
       </footer>
     </form>
   </dialog>
@@ -916,6 +1081,48 @@
     </form>
   </dialog>
 
+  <!-- ABOUT THIS DEMO DIALOG -->
+  <dialog class="modal-dialog modal-dialog-lg" id="about-demo-dialog" style="max-width:540px;">
+    <div class="modal-form">
+      <header class="modal-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:16px;">ℹ</span>
+          <h3>About This SUGRIV Demonstration</h3>
+        </div>
+        <button class="btn-close" id="btn-close-about-dialog" type="button" aria-label="Close dialog">✕</button>
+      </header>
+      <div class="modal-body" style="font-size:12px;line-height:1.5;gap:12px;">
+        <div class="about-card">
+          <strong style="color:var(--color-accent);display:block;margin-bottom:2px;">1. Simulated Operational Environment</strong>
+          <p style="color:var(--text-secondary);">All incident feeds, hazard coordinates, rover telemetry, and environmental readings in this prototype are entirely simulated in server memory. Zero external emergency APIs, databases, or cloud services are connected.</p>
+        </div>
+
+        <div class="about-card">
+          <strong style="color:var(--color-accent);display:block;margin-bottom:2px;">2. Intended Operational Hardware Role</strong>
+          <p style="color:var(--text-secondary);">In field deployment, the SUGRIV scout rover is a ruggedized unmanned ground vehicle equipped with Time-of-Flight LiDAR, narrow-FOV optical cameras, spot infrared radiometers, and 2.4GHz RF mesh relays for exploring confined structural voids prior to crew entry.</p>
+        </div>
+
+        <div class="about-card">
+          <strong style="color:var(--color-accent);display:block;margin-bottom:2px;">3. Mandatory Operator Verification</strong>
+          <p style="color:var(--text-secondary);">Autonomous sensor observations (e.g. cross-sectional corridor occlusions, thermal hotspots) are treated as preliminary alerts. They require explicit human operator confirmation before access routes are marked impassable or rescue teams are committed.</p>
+        </div>
+
+        <div class="about-card">
+          <strong style="color:var(--color-accent);display:block;margin-bottom:2px;">4. Simulated 3D Scene (Not Live Reconstruction)</strong>
+          <p style="color:var(--text-secondary);">The 3D site workspace is a tactical geometric simulation designed to demonstrate decision-making workflows. It is not a live photogrammetric or real-time point-cloud reconstruction.</p>
+        </div>
+
+        <div class="about-card">
+          <strong style="color:var(--color-accent);display:block;margin-bottom:2px;">5. Illustrative Recommendations (Not Guaranteed Safe)</strong>
+          <p style="color:var(--text-secondary);">Suggested approach routes and priority rankings are heuristic decision-support recommendations. No route is guaranteed structurally safe in dynamic collapse environments; final command authority resides with the Incident Commander.</p>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn-primary" id="btn-ack-about-dialog" type="button">Understood</button>
+      </footer>
+    </div>
+  </dialog>
+
   <!-- GOOGLE MAPS API KEY CONFIG DIALOG -->
   <dialog class="modal-dialog" id="api-key-dialog">
     <form class="modal-form" id="api-key-form" method="dialog">
@@ -935,6 +1142,307 @@
       <footer class="modal-footer">
         <button class="btn btn-outline" id="btn-cancel-key-dialog" type="button">Cancel</button>
         <button class="btn btn-primary" type="submit">Save & Load Map</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- =========================================================================
+       FEATURE 2: MANUAL INCIDENT REPORTING DIALOG
+       ========================================================================= -->
+  <dialog class="modal-dialog modal-dialog-lg" id="report-incident-dialog" style="max-width:560px;">
+    <form class="modal-form" id="report-incident-form" method="dialog">
+      <header class="modal-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">🚨</span>
+          <div>
+            <h3>Report Incident</h3>
+            <span class="sim-badge-inline">[SIMULATED DISPATCH]</span>
+          </div>
+        </div>
+        <button class="btn-close" id="btn-close-report-dialog" type="button" aria-label="Close dialog">✕</button>
+      </header>
+      <div class="modal-body" style="gap:10px;">
+        <div class="warning-banner" style="margin-bottom:4px;">
+          <strong>Lifecycle Protocol:</strong>
+          <div>New reports are marked <b>UNVERIFIED</b> with response lifecycle <b>REPORTED</b> until reviewed by an operator.</div>
+        </div>
+
+        <div class="form-row" style="display:flex;gap:10px;">
+          <div class="form-group" style="flex:2;">
+            <label for="report-title">Incident Title *</label>
+            <input type="text" id="report-title" required placeholder="e.g. Bandra-Kurla Water Main Breach">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label for="report-type">Disaster Type *</label>
+            <select id="report-type" required>
+              <option value="COLLAPSE">🏢 Building Collapse</option>
+              <option value="FLOOD">🌊 Flooding</option>
+              <option value="FIRE">🔥 Fire</option>
+              <option value="LANDSLIDE">⛰️ Landslide</option>
+              <option value="HAZMAT">☣️ Hazmat</option>
+              <option value="MEDICAL">🚑 Medical</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" style="display:flex;gap:10px;">
+          <div class="form-group" style="flex:2;">
+            <label for="report-location">Location Name / Landmark *</label>
+            <input type="text" id="report-location" required placeholder="e.g. SV Road Junction, Vile Parle West">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label for="report-severity">Reported Severity *</label>
+            <select id="report-severity" required>
+              <option value="CRITICAL">🔴 Critical (Level 4)</option>
+              <option value="HIGH" selected>🟠 High (Level 3)</option>
+              <option value="MEDIUM">🟡 Medium (Level 2)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" style="display:flex;gap:10px;">
+          <div class="form-group" style="flex:1;">
+            <label for="report-lat">Latitude</label>
+            <input type="number" step="0.0001" id="report-lat" value="19.0980" required>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label for="report-lng">Longitude</label>
+            <input type="number" step="0.0001" id="report-lng" value="72.8450" required>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label for="report-time">Observed Time</label>
+            <input type="text" id="report-time" placeholder="e.g. Current Time">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="report-description">Field Situation Description</label>
+          <textarea id="report-description" rows="3" placeholder="Describe preliminary observations, reported casualties, obstructions, or hazard trajectory..."></textarea>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn-outline" id="btn-cancel-report" type="button">Cancel</button>
+        <button class="btn btn-primary" type="submit" id="btn-submit-report">🚨 File Incident Report</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- =========================================================================
+       FEATURE 5: CENTRAL ALERT INBOX MODAL
+       ========================================================================= -->
+  <dialog class="modal-dialog modal-dialog-lg" id="alert-inbox-dialog" style="max-width:760px;width:90vw;">
+    <div class="modal-form">
+      <header class="modal-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">📬</span>
+          <div>
+            <h3>Central Alert & Notification Inbox</h3>
+            <span class="sim-badge-inline">[SIMULATED DISASTER FEED]</span>
+          </div>
+        </div>
+        <button class="btn-close" id="btn-close-inbox-dialog" type="button" aria-label="Close dialog">✕</button>
+      </header>
+
+      <div class="inbox-filter-bar">
+        <div class="filter-item">
+          <label for="inbox-filter-incident">Incident:</label>
+          <select id="inbox-filter-incident" class="filter-select">
+            <option value="ALL">All Incidents</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label for="inbox-filter-type">Alert Type:</label>
+          <select id="inbox-filter-type" class="filter-select">
+            <option value="ALL">All Types</option>
+            <option value="THERMAL_ANOMALY">Thermal Anomaly</option>
+            <option value="HAZARD">Hazard / Obstacle</option>
+            <option value="OPERATIONAL">Operational Notification</option>
+            <option value="RELIEF">Relief Logistics</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label for="inbox-filter-ack">State:</label>
+          <select id="inbox-filter-ack" class="filter-select">
+            <option value="ALL">All (History)</option>
+            <option value="UNACK" selected>⚠️ Unacknowledged</option>
+            <option value="ACK">✓ Acknowledged</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-body inbox-list-body" id="inbox-alerts-list">
+        <!-- Dynamically populated alert cards -->
+      </div>
+
+      <footer class="modal-footer" style="justify-content:space-between;">
+        <span style="font-size:11px;color:var(--text-muted);">
+          Note: Acknowledging an alert records operator receipt; it does NOT automatically resolve hazards.
+        </span>
+        <button class="btn btn-outline" id="btn-close-inbox-bottom" type="button">Close</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- =========================================================================
+       FEATURE 3: CREATE INCIDENT TASK MODAL
+       ========================================================================= -->
+  <dialog class="modal-dialog modal-dialog-lg" id="create-task-dialog" style="max-width:540px;">
+    <form class="modal-form" id="create-task-form" method="dialog">
+      <header class="modal-header">
+        <div>
+          <h3>Create Incident Task</h3>
+          <span style="font-size:11px;color:var(--text-muted);" id="modal-task-incident-name">Linked Incident</span>
+        </div>
+        <button class="btn-close" id="btn-close-create-task" type="button" aria-label="Close dialog">✕</button>
+      </header>
+      <div class="modal-body" style="gap:10px;">
+        <div class="form-group">
+          <label for="create-task-title">Task Title *</label>
+          <input type="text" id="create-task-title" required placeholder="e.g. Clear Debris Ingress Corridor">
+        </div>
+        <div class="form-row" style="display:flex;gap:10px;">
+          <div class="form-group" style="flex:1;">
+            <label for="create-task-zone">Target Zone / Sector *</label>
+            <input type="text" id="create-task-zone" required placeholder="e.g. Approach Alpha / Sector B">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label for="create-task-priority">Priority *</label>
+            <select id="create-task-priority">
+              <option value="CRITICAL">🔴 Critical</option>
+              <option value="HIGH" selected>🟠 High</option>
+              <option value="MEDIUM">🟡 Medium</option>
+              <option value="LOW">🟢 Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="create-task-team">Assign Response Team</label>
+          <select id="create-task-team">
+            <option value="">-- Leave Unassigned (Pending) --</option>
+            <option value="TEAM_VANGUARD">Team Vanguard (Recon & Hazmat)</option>
+            <option value="TEAM_SENTINEL">Team Sentinel (Technical Rescue & Clearance)</option>
+            <option value="TEAM_PHOENIX">Team Phoenix (Medical Triage & Evacuation)</option>
+            <option value="TEAM_ATLAS">Team Atlas (Relief Logistics & Transport)</option>
+          </select>
+          <div id="team-capability-hint" style="font-size:11px;color:var(--text-secondary);margin-top:4px;"></div>
+        </div>
+        <div class="form-group">
+          <label for="create-task-desc">Task Instructions / Description</label>
+          <textarea id="create-task-desc" rows="2" placeholder="Specific operational objectives and hazards to observe..."></textarea>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn-outline" id="btn-cancel-create-task" type="button">Cancel</button>
+        <button class="btn btn-primary" type="submit" id="btn-submit-create-task">Dispatch Task</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- =========================================================================
+       FEATURE 4: RELIEF REQUEST TRACKING DIALOG (Create & Global View)
+       ========================================================================= -->
+  <dialog class="modal-dialog" id="add-relief-dialog" style="max-width:520px;">
+    <form class="modal-form" id="add-relief-form" method="dialog">
+      <header class="modal-header">
+        <div>
+          <h3>Create Relief Request</h3>
+          <span style="font-size:11px;color:var(--text-muted);" id="modal-relief-incident-name">Linked Incident</span>
+        </div>
+        <button class="btn-close" id="btn-close-add-relief" type="button" aria-label="Close dialog">✕</button>
+      </header>
+      <div class="modal-body" style="gap:10px;">
+        <div class="warning-banner" style="margin-bottom:4px;">
+          <strong>Simulated Coordination:</strong>
+          <div>Demonstration tracking only; zero claims of actual deliveries or inventory availability.</div>
+        </div>
+        <div class="form-row" style="display:flex;gap:10px;">
+          <div class="form-group" style="flex:2;">
+            <label for="relief-item-type">Item Requested *</label>
+            <select id="relief-item-type" required>
+              <option value="WATER">💧 Potable Drinking Water</option>
+              <option value="FIRST_AID">🩹 First-Aid & Trauma Kits</option>
+              <option value="BLANKETS">🛏️ Blankets & Thermal Bedding</option>
+              <option value="TRANSPORT">🚐 Transport / Evacuation Assistance</option>
+              <option value="FOOD">🥫 Emergency Food Rations</option>
+              <option value="GENERATOR">⚡ Emergency Power Generators</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label for="relief-priority">Priority *</label>
+            <select id="relief-priority" required>
+              <option value="CRITICAL">🔴 Critical</option>
+              <option value="HIGH" selected>🟠 High</option>
+              <option value="MEDIUM">🟡 Medium</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row" style="display:flex;gap:10px;">
+          <div class="form-group" style="flex:1;">
+            <label for="relief-qty">Quantity *</label>
+            <input type="number" id="relief-qty" min="1" value="200" required>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label for="relief-unit">Unit *</label>
+            <input type="text" id="relief-unit" value="liters" required placeholder="e.g. liters, kits, units">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="relief-dest">Delivery Destination *</label>
+          <input type="text" id="relief-dest" required placeholder="Staging camp, shelter, or incident address">
+        </div>
+        <div class="form-group">
+          <label for="relief-notes">Logistics Notes</label>
+          <input type="text" id="relief-notes" placeholder="e.g. Ingress via Tilak Road route only">
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn-outline" id="btn-cancel-add-relief" type="button">Cancel</button>
+        <button class="btn btn-primary" type="submit">Log Relief Request</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- GLOBAL RELIEF TRACKING MODAL -->
+  <dialog class="modal-dialog modal-dialog-lg" id="global-relief-dialog" style="max-width:760px;width:90vw;">
+    <div class="modal-form">
+      <header class="modal-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">🚚</span>
+          <div>
+            <h3>Relief Request Coordination</h3>
+            <span class="sim-badge-inline">[SIMULATED DISASTER LOGISTICS]</span>
+          </div>
+        </div>
+        <button class="btn-close" id="btn-close-global-relief" type="button" aria-label="Close dialog">✕</button>
+      </header>
+      <div class="modal-body" style="max-height:65vh;overflow-y:auto;" id="global-relief-list">
+        <!-- Dynamically populated list of all relief requests across incidents -->
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn-outline" id="btn-close-global-relief-bottom" type="button">Close</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- OPERATOR SESSION NAME DIALOG -->
+  <dialog class="modal-dialog" id="operator-name-dialog" style="max-width:400px;">
+    <form class="modal-form" id="operator-name-form" method="dialog">
+      <header class="modal-header">
+        <h3>Operator Session Name</h3>
+        <button class="btn-close" id="btn-close-operator-dialog" type="button" aria-label="Close dialog">✕</button>
+      </header>
+      <div class="modal-body">
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">
+          Enter your operator display name for notes, task dispatches, and verification history (in server memory session only; zero accounts required).
+        </p>
+        <div class="form-group">
+          <label for="input-operator-display-name">Display Name</label>
+          <input type="text" id="input-operator-display-name" required value="Operator-1" maxlength="32">
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn-outline" id="btn-cancel-operator-dialog" type="button">Cancel</button>
+        <button class="btn btn-primary" type="submit">Save Display Name</button>
       </footer>
     </form>
   </dialog>

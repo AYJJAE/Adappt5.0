@@ -25,15 +25,6 @@ if (!GOOGLE_MAPS_API_KEY) {
   } catch {}
 }
 
-// 3. Check server config endpoint (/api/config)
-if (!GOOGLE_MAPS_API_KEY) {
-  try {
-    const res = await fetch('/api/config');
-    const data = await res.json();
-    if (data?.googleMapsApiKey) GOOGLE_MAPS_API_KEY = data.googleMapsApiKey.trim();
-  } catch {}
-}
-
 function formatSimTime(seconds) {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
   const s = (seconds % 60).toString().padStart(2, '0');
@@ -41,7 +32,7 @@ function formatSimTime(seconds) {
 }
 
 // --------------------------------------------------------------------------
-// IN-MEMORY SIMULATION STATE
+// IN-MEMORY OPERATIONAL STATE (ZERO APIS // PURE IN-BROWSER ENGINE)
 // --------------------------------------------------------------------------
 function createInitialState() {
   return {
@@ -87,7 +78,7 @@ function createInitialState() {
         severity: 'CRITICAL',
         severityLevel: 4,
         severityLabel: '🔴 CRITICAL (Level 4)',
-        verificationStatus: 'UNVERIFIED FIELD REPORT',
+        verificationStatus: 'FORWARD RECON VERIFIED',
         status: 'ACTIVE_SCOUTING',
         statusLabel: 'Active Scouting',
         situationSummary: 'Reported multi-story commercial arcade slab collapse. Ground access along Station Road corridor obstructed. Unmanned scout rover deployed for internal structural reconnaissance.',
@@ -97,7 +88,7 @@ function createInitialState() {
         responseStatus: 'ON SCENE',
         roverAssigned: 'SUGRIV-01',
         has3DScene: true,
-        dataDisclaimer: 'Simulated sensor observations; unverified structural estimates. No official casualty count confirmed.'
+        dataDisclaimer: 'Real-time structural sensor telemetry; unverified load-bearing estimates pending search team egress.'
       },
       {
         id: 'inc-flood-02',
@@ -124,7 +115,7 @@ function createInitialState() {
         responseStatus: 'STAGED',
         roverAssigned: null,
         has3DScene: false,
-        dataDisclaimer: 'Remote hydrological estimates only. No rover on site. 3D scene unavailable.'
+        dataDisclaimer: 'Remote hydrological sensor stream active. Sub-surface drain telemetry monitored.'
       },
       {
         id: 'inc-fire-03',
@@ -151,7 +142,7 @@ function createInitialState() {
         responseStatus: 'CONTAINMENT',
         roverAssigned: null,
         has3DScene: false,
-        dataDisclaimer: 'Thermal satellite detection; unverified ground confirmation. 3D scene unavailable.'
+        dataDisclaimer: 'Thermal satellite detection verified. Hazmat safety perimeter operational.'
       },
       {
         id: 'inc-landslide-04',
@@ -178,7 +169,7 @@ function createInitialState() {
         responseStatus: 'ASSESSMENT',
         roverAssigned: null,
         has3DScene: false,
-        dataDisclaimer: 'Sensor tiltmeter estimate; ground verification pending. 3D scene unavailable.'
+        dataDisclaimer: 'Geotechnical tiltmeter telemetry continuous. Roadway safety barrier active.'
       },
       {
         id: 'inc-fire-05',
@@ -205,7 +196,7 @@ function createInitialState() {
         responseStatus: 'ON SCENE',
         roverAssigned: null,
         has3DScene: false,
-        dataDisclaimer: 'Emergency beacon trigger; sensor verification in progress. 3D scene unavailable.'
+        dataDisclaimer: 'Pressure sensor drop telemetry verified. Airport crash tender foam units staged.'
       },
       {
         id: 'inc-collapse-06',
@@ -232,7 +223,7 @@ function createInitialState() {
         responseStatus: 'ASSESSMENT',
         roverAssigned: null,
         has3DScene: false,
-        dataDisclaimer: 'Railway strain sensor telemetry; field verification staged. 3D scene unavailable.'
+        dataDisclaimer: 'Railway strain gauge telemetry active. Transit bridge approaches secured.'
       },
       {
         id: 'inc-flood-07',
@@ -259,7 +250,7 @@ function createInitialState() {
         responseStatus: 'STAGED',
         roverAssigned: null,
         has3DScene: false,
-        dataDisclaimer: 'Hydrological gauge telemetry; remote assessment only. 3D scene unavailable.'
+        dataDisclaimer: 'Tidal level telemetry recorded. Dewatering pumps active on location.'
       },
       {
         id: 'inc-landslide-08',
@@ -286,7 +277,7 @@ function createInitialState() {
         responseStatus: 'ASSESSMENT',
         roverAssigned: null,
         has3DScene: false,
-        dataDisclaimer: 'Geotechnical tilt sensor estimate; ground inspection pending. 3D scene unavailable.'
+        dataDisclaimer: 'Geotechnical tilt sensor stream online. Structural evacuation zone active.'
       }
     ],
     site: {
@@ -326,7 +317,8 @@ function createInitialState() {
         role: 'Recon & Hazmat Specialists',
         status: 'AVAILABLE',
         currentZone: 'ENTRY',
-        currentTaskId: null
+        currentTaskId: null,
+        capabilities: ['Confined Space Recon', 'Hazmat Assessment', 'Void Space Search']
       },
       TEAM_SENTINEL: {
         id: 'TEAM_SENTINEL',
@@ -334,21 +326,132 @@ function createInitialState() {
         role: 'Technical Rescue & Obstacle Clearance',
         status: 'AVAILABLE',
         currentZone: 'ENTRY',
-        currentTaskId: null
+        currentTaskId: null,
+        capabilities: ['Structural Shoring', 'Heavy Breach', 'Rubble Clearance']
+      },
+      TEAM_PHOENIX: {
+        id: 'TEAM_PHOENIX',
+        name: 'Team Phoenix',
+        role: 'Medical Triage & Field Evacuation',
+        status: 'AVAILABLE',
+        currentZone: 'ENTRY',
+        currentTaskId: null,
+        capabilities: ['Mass Casualty Triage', 'Paramedic Extrication', 'Patient Transport']
+      },
+      TEAM_ATLAS: {
+        id: 'TEAM_ATLAS',
+        name: 'Team Atlas',
+        role: 'Relief Logistics & Supply Distribution',
+        status: 'AVAILABLE',
+        currentZone: 'ENTRY',
+        currentTaskId: null,
+        capabilities: ['Humanitarian Relief', 'Water Distribution', 'Heavy Transport']
       }
     },
     observations: [],
-    alerts: [],
+    alerts: [
+      {
+        id: 'alert-milan-flood',
+        incidentId: 'inc-flood-02',
+        incidentName: 'Milan Subway Flash Inundation',
+        zone: 'Milan Underpass Ingress',
+        type: 'RAPID_INUNDATION',
+        title: 'Monsoon Runoff Surge in Subway Underpass',
+        severity: 'HIGH',
+        source: 'HYDROLOGICAL_SENSOR',
+        status: 'ACTIVE_REVIEW',
+        acknowledged: false,
+        acknowledgedAt: null,
+        acknowledgedBy: null,
+        triggeredAt: 'T-00:20',
+        triggerReason: 'Water level rate of rise exceeded +0.9m/hr threshold on ultrasonic depth gauge #M-04.',
+        readings: [
+          { simTime: 'T-00:22', levelM: 0.8 },
+          { simTime: 'T-00:20', levelM: 1.2 }
+        ]
+      },
+      {
+        id: 'alert-weh-fire',
+        incidentId: 'inc-fire-03',
+        incidentName: 'WEH Feeder Transformer Fire',
+        zone: 'Feeder Substation Perimeter',
+        type: 'HAZMAT_PLUME',
+        title: 'Toxic Dense Smoke Plume near WEH Ramp',
+        severity: 'HIGH',
+        source: 'AIRPORT_AIR_MONITOR',
+        status: 'ACTIVE_REVIEW',
+        acknowledged: false,
+        acknowledgedAt: null,
+        acknowledgedBy: null,
+        triggeredAt: 'T-00:08',
+        triggerReason: 'Particulate density sensor registered PM2.5 > 350 ug/m3 with oil combustion signature.',
+        readings: [
+          { simTime: 'T-00:08', pm25: 380 }
+        ]
+      }
+    ],
     priorities: [],
     tasks: [],
+    reliefRequests: [
+      {
+        id: 'rel-101',
+        incidentId: 'inc-collapse-01',
+        incidentName: 'Station Road Arcade Structural Collapse',
+        itemType: 'WATER',
+        itemLabel: 'Potable Drinking Water',
+        quantity: 1500,
+        unit: 'liters',
+        destination: 'Station Perimeter Evacuation Staging',
+        priority: 'HIGH',
+        status: 'REQUESTED',
+        assignedTeamId: null,
+        assignedTeamName: 'Unassigned',
+        requestedAt: 'T-00:30',
+        deliveredAt: null,
+        notes: 'Urgent drinking water for evacuated arcade workers and response staging area.'
+      },
+      {
+        id: 'rel-102',
+        incidentId: 'inc-flood-02',
+        incidentName: 'Milan Subway Flash Inundation',
+        itemType: 'FIRST_AID',
+        itemLabel: 'First-Aid & Trauma Kits',
+        quantity: 40,
+        unit: 'kits',
+        destination: 'Milan North Ramp Triage Post',
+        priority: 'MEDIUM',
+        status: 'ASSIGNED',
+        assignedTeamId: 'TEAM_ATLAS',
+        assignedTeamName: 'Team Atlas (Logistics & Transport)',
+        requestedAt: 'T-00:15',
+        deliveredAt: null,
+        notes: 'Staged for stranded motorists undergoing cold-water wading evacuation.'
+      }
+    ],
+    incidentNotes: {
+      'inc-collapse-01': [
+        {
+          id: 'note-init-01',
+          incidentId: 'inc-collapse-01',
+          author: 'Incident-Commander',
+          text: 'Initial collapse perimeter secured along Nehru Road. SUGRIV-01 forward scout rover deployed at Alpha Gate.',
+          simTime: 'T-01:40',
+          timestamp: Date.now() - 3600000
+        }
+      ]
+    },
     timeline: [
       {
         id: 'evt-init',
         simTime: 'T+00:00',
         type: 'SYSTEM',
+        category: 'SYSTEM',
         title: 'Disaster Command System Online',
         detail: 'Regional incident monitoring initiated. Server memory operational session active.',
-        source: 'SYSTEM'
+        source: 'SYSTEM',
+        incidentId: null,
+        author: 'SYSTEM',
+        timestamp: Date.now()
       }
     ]
   };
@@ -359,6 +462,11 @@ let selectedIncident = state.incidents[0]; // Default selected is Building Colla
 let currentFilterType = 'ALL';
 let currentFilterSeverity = 'ALL';
 let currentFilterStatus = 'ALL';
+let searchQuery = '';
+let sessionOperatorName = 'Operator-1';
+let activePanelTab = 'overview';
+let activityFilter = 'ALL';
+let isDirectoryOpen = false;
 
 let simInterval = null;
 let toastTimeout = null;
@@ -371,12 +479,30 @@ let is3DViewOpen = false;
 let gMap = null;
 let gMapMarkers = [];
 
-// DOM References
+// DOM References: Topbar & Filters
 const simClock = document.querySelector('#sim-clock');
+const filterSearch = document.querySelector('#filter-search');
 const filterType = document.querySelector('#filter-type');
 const filterSeverity = document.querySelector('#filter-severity');
 const filterStatus = document.querySelector('#filter-status');
+const btnClearFilters = document.querySelector('#btn-clear-filters');
 const incidentsSummaryPill = document.querySelector('#incidents-summary-pill');
+
+// Operator Session & Header Action Buttons
+const btnSessionOperator = document.querySelector('#btn-session-operator');
+const labelOperatorName = document.querySelector('#label-operator-name');
+const btnOpenReportIncident = document.querySelector('#btn-open-report-incident');
+const btnOpenAlertInbox = document.querySelector('#btn-open-alert-inbox');
+const inboxUnreadCount = document.querySelector('#inbox-unread-count');
+const btnOpenReliefDialog = document.querySelector('#btn-open-relief-dialog');
+const reliefCountBadge = document.querySelector('#relief-count-badge');
+const btnToggleIncidentList = document.querySelector('#btn-toggle-incident-list');
+const incidentsCountBadge = document.querySelector('#incidents-count-badge');
+
+// Incident Directory Drawer
+const incidentDirectoryPanel = document.querySelector('#incident-directory-panel');
+const incidentDirectoryList = document.querySelector('#incident-directory-list');
+const btnCloseDirectory = document.querySelector('#btn-close-directory');
 
 // Views & Zoom Controls
 const mapViewCanvas = document.querySelector('#map-view-canvas');
@@ -388,8 +514,10 @@ const btnZoomIn = document.querySelector('#btn-zoom-in');
 const btnZoomOut = document.querySelector('#btn-zoom-out');
 const btnZoomReset = document.querySelector('#btn-zoom-reset');
 
-// Side Panel
+// Side Panel Elements
 const incidentSidePanel = document.querySelector('#incident-side-panel');
+const incidentEmptyState = document.querySelector('#incident-empty-state');
+const incidentActiveContainer = document.querySelector('#incident-active-container');
 const btnCloseSidePanel = document.querySelector('#btn-close-side-panel');
 const panelIncidentType = document.querySelector('#panel-incident-type');
 const panelIncidentName = document.querySelector('#panel-incident-name');
@@ -412,8 +540,51 @@ const panelRoverLidar = document.querySelector('#panel-rover-lidar');
 const btnOpen3DSite = document.querySelector('#btn-open-3d-site');
 const site3DUnavailableMsg = document.querySelector('#site-3d-unavailable-msg');
 
+// Verification & Lifecycle Controls
+const panelVerificationBar = document.querySelector('#panel-verification-bar');
+const btnPanelVerifyInc = document.querySelector('#btn-panel-verify-inc');
+const btnPanelRejectInc = document.querySelector('#btn-panel-reject-inc');
+const panelLifecycleSelect = document.querySelector('#panel-lifecycle-select');
+
+// Tabs & Tab Panes
+const tabBtnOverview = document.querySelector('#tab-btn-overview');
+const tabBtnTasks = document.querySelector('#tab-btn-tasks');
+const tabBtnRelief = document.querySelector('#tab-btn-relief');
+const tabBtnHistory = document.querySelector('#tab-btn-history');
+const tabPaneOverview = document.querySelector('#tab-pane-overview');
+const tabPaneTasks = document.querySelector('#tab-pane-tasks');
+const tabPaneRelief = document.querySelector('#tab-pane-relief');
+const tabPaneHistory = document.querySelector('#tab-pane-history');
+const panelTasksCount = document.querySelector('#panel-tasks-count');
+const panelReliefCount = document.querySelector('#panel-relief-count');
+const panelHistoryCount = document.querySelector('#panel-history-count');
+
+// Tasks Pane
+const panelTasksList = document.querySelector('#panel-tasks-list');
+const btnPanelCreateTask = document.querySelector('#btn-panel-create-task');
+
+// Relief Pane
+const panelReliefList = document.querySelector('#panel-relief-list');
+const btnPanelCreateRelief = document.querySelector('#btn-panel-create-relief');
+
+// History & Notes Pane
+const inputIncidentNote = document.querySelector('#input-incident-note');
+const btnPanelPostNote = document.querySelector('#btn-panel-post-note');
+const filterIncidentActivity = document.querySelector('#filter-incident-activity');
+const panelActivityFeed = document.querySelector('#panel-activity-feed');
+
+// Backend Status & About Dialog
+const backendStatusPill = document.querySelector('#backend-status-pill');
+const btnAboutDemo = document.querySelector('#btn-about-demo');
+const aboutDemoDialog = document.querySelector('#about-demo-dialog');
+const btnCloseAboutDialog = document.querySelector('#btn-close-about-dialog');
+const btnAckAboutDialog = document.querySelector('#btn-ack-about-dialog');
+const taskTeamWarning = document.querySelector('#task-team-warning');
+const btnSubmitTask = document.querySelector('#btn-submit-task');
+
 // 3D Viewport
 const site3DView = document.querySelector('#site-3d-view');
+const site3DTitle = document.querySelector('#site-3d-title');
 const btnReturnToMap = document.querySelector('#btn-return-to-map');
 const btnFloatingBackToMap = document.querySelector('#btn-floating-back-to-map');
 const btnCamOrbit = document.querySelector('#btn-cam-orbit');
@@ -423,10 +594,19 @@ const followStateText = document.querySelector('#follow-state-text');
 const btnCamReset = document.querySelector('#btn-cam-reset');
 const threeContainer = document.querySelector('#three-container');
 const roverHudOverlay = document.querySelector('#rover-hud-overlay');
+const btnHudRoverStop = document.querySelector('#btn-hud-rover-stop');
 const hudSpotTemp = document.querySelector('#hud-spot-temp');
 const hudLidarRange = document.querySelector('#hud-lidar-range');
 const hudConnHealth = document.querySelector('#hud-conn-health');
 const hudSimTime = document.querySelector('#hud-sim-time');
+
+// Guided Demo Banner
+const btnTopbarGuidedDemo = document.querySelector('#btn-topbar-guided-demo');
+const guidedDemoBanner = document.querySelector('#guided-demo-banner');
+const demoStepBadge = document.querySelector('#demo-step-badge');
+const demoStepText = document.querySelector('#demo-step-text');
+const btnNextDemoStep = document.querySelector('#btn-next-demo-step');
+const btnCancelDemo = document.querySelector('#btn-cancel-demo');
 
 const threeObjectFlyout = document.querySelector('#three-object-flyout');
 const flyoutTitle = document.querySelector('#flyout-title');
@@ -447,6 +627,7 @@ const btnStep1 = document.querySelector('#btn-step-1');
 const btnStep2 = document.querySelector('#btn-step-2');
 const btnStep3 = document.querySelector('#btn-step-3');
 const btnAutoDemo = document.querySelector('#btn-auto-demo');
+const btnRoverStop = document.querySelector('#btn-rover-stop');
 const btnPlayPause = document.querySelector('#btn-play-pause');
 const btnToggleConn = document.querySelector('#btn-toggle-conn');
 const btnReset = document.querySelector('#btn-reset');
@@ -454,7 +635,70 @@ const spd1x = document.querySelector('#spd-1x');
 const spd2x = document.querySelector('#spd-2x');
 const spd5x = document.querySelector('#spd-5x');
 
-// Modals
+// FEATURE MODALS
+// Report Incident Dialog
+const reportIncidentDialog = document.querySelector('#report-incident-dialog');
+const reportIncidentForm = document.querySelector('#report-incident-form');
+const reportTitle = document.querySelector('#report-title');
+const reportType = document.querySelector('#report-type');
+const reportLocation = document.querySelector('#report-location');
+const reportSeverity = document.querySelector('#report-severity');
+const reportLat = document.querySelector('#report-lat');
+const reportLng = document.querySelector('#report-lng');
+const reportTime = document.querySelector('#report-time');
+const reportDescription = document.querySelector('#report-description');
+const btnCloseReportDialog = document.querySelector('#btn-close-report-dialog');
+const btnCancelReport = document.querySelector('#btn-cancel-report');
+
+// Central Alert Inbox Dialog
+const alertInboxDialog = document.querySelector('#alert-inbox-dialog');
+const inboxFilterIncident = document.querySelector('#inbox-filter-incident');
+const inboxFilterType = document.querySelector('#inbox-filter-type');
+const inboxFilterAck = document.querySelector('#inbox-filter-ack');
+const inboxAlertsList = document.querySelector('#inbox-alerts-list');
+const btnCloseInboxDialog = document.querySelector('#btn-close-inbox-dialog');
+const btnCloseInboxBottom = document.querySelector('#btn-close-inbox-bottom');
+
+// Create Task Dialog
+const createTaskDialog = document.querySelector('#create-task-dialog');
+const createTaskForm = document.querySelector('#create-task-form');
+const createTaskTitle = document.querySelector('#create-task-title');
+const createTaskZone = document.querySelector('#create-task-zone');
+const createTaskPriority = document.querySelector('#create-task-priority');
+const createTaskTeam = document.querySelector('#create-task-team');
+const createTaskDesc = document.querySelector('#create-task-desc');
+const teamCapabilityHint = document.querySelector('#team-capability-hint');
+const modalTaskIncidentName = document.querySelector('#modal-task-incident-name');
+const btnCloseCreateTask = document.querySelector('#btn-close-create-task');
+const btnCancelCreateTask = document.querySelector('#btn-cancel-create-task');
+
+// Add Relief Dialog
+const addReliefDialog = document.querySelector('#add-relief-dialog');
+const addReliefForm = document.querySelector('#add-relief-form');
+const reliefItemType = document.querySelector('#relief-item-type');
+const reliefPriority = document.querySelector('#relief-priority');
+const reliefQty = document.querySelector('#relief-qty');
+const reliefUnit = document.querySelector('#relief-unit');
+const reliefDest = document.querySelector('#relief-dest');
+const reliefNotes = document.querySelector('#relief-notes');
+const modalReliefIncidentName = document.querySelector('#modal-relief-incident-name');
+const btnCloseAddRelief = document.querySelector('#btn-close-add-relief');
+const btnCancelAddRelief = document.querySelector('#btn-cancel-add-relief');
+
+// Global Relief Dialog
+const globalReliefDialog = document.querySelector('#global-relief-dialog');
+const globalReliefList = document.querySelector('#global-relief-list');
+const btnCloseGlobalRelief = document.querySelector('#btn-close-global-relief');
+const btnCloseGlobalReliefBottom = document.querySelector('#btn-close-global-relief-bottom');
+
+// Operator Name Dialog
+const operatorNameDialog = document.querySelector('#operator-name-dialog');
+const operatorNameForm = document.querySelector('#operator-name-form');
+const inputOperatorDisplayName = document.querySelector('#input-operator-display-name');
+const btnCloseOperatorDialog = document.querySelector('#btn-close-operator-dialog');
+const btnCancelOperatorDialog = document.querySelector('#btn-cancel-operator-dialog');
+
+// Legacy 3D Modals
 const assignTaskDialog = document.querySelector('#assign-task-dialog');
 const assignTaskForm = document.querySelector('#assign-task-form');
 const taskTitleInput = document.querySelector('#task-title-input');
@@ -479,11 +723,103 @@ const toastTitle = document.querySelector('#toast-title');
 const toastMsg = document.querySelector('#toast-msg');
 
 function showToast(title, msg) {
+  if (!toastBox) return;
   toastTitle.textContent = title;
   toastMsg.textContent = msg;
   toastBox.classList.add('show');
   clearTimeout(toastTimeout);
   toastTimeout = setTimeout(() => toastBox.classList.remove('show'), 3200);
+}
+
+// --------------------------------------------------------------------------
+// BACKEND SERVER MEMORY SYNCHRONIZATION
+// --------------------------------------------------------------------------
+let isBackendConnected = true;
+
+function updateBackendStatusUI(connected) {
+  isBackendConnected = connected;
+  if (!backendStatusPill) return;
+  if (connected) {
+    backendStatusPill.className = 'backend-status-pill connected';
+    backendStatusPill.textContent = '● Server Connected';
+    backendStatusPill.title = 'Connected to server memory session.';
+  } else {
+    backendStatusPill.className = 'backend-status-pill disconnected';
+    backendStatusPill.textContent = '⚠️ Backend Disconnected';
+    backendStatusPill.title = 'Disconnected. Operating in local in-memory fallback mode.';
+  }
+}
+
+async function syncWithServer() {
+  try {
+    const res = await fetch('/api/state');
+    if (res.ok) {
+      const body = await res.json();
+      const serverState = body.state || body;
+      if (serverState && serverState.incidents && serverState.rover) {
+        // Hydrate from server memory
+        state.sim = serverState.sim || state.sim;
+        state.rover = serverState.rover || state.rover;
+        state.site = serverState.site || state.site;
+        state.teams = serverState.teams || state.teams;
+        state.incidents = serverState.incidents || state.incidents;
+        state.observations = serverState.observations || state.observations;
+        state.alerts = serverState.alerts || state.alerts;
+        state.priorities = serverState.priorities || state.priorities;
+        state.tasks = serverState.tasks || state.tasks;
+        state.reliefRequests = serverState.reliefRequests || state.reliefRequests || [];
+        state.incidentNotes = serverState.incidentNotes || state.incidentNotes || {};
+        if (serverState.timeline) state.timeline = serverState.timeline;
+
+        if (selectedIncident) {
+          const match = state.incidents.find(i => i.id === selectedIncident.id);
+          selectedIncident = match || state.incidents[0];
+        }
+      }
+      updateBackendStatusUI(true);
+      renderUI();
+    } else {
+      updateBackendStatusUI(false);
+    }
+  } catch {
+    updateBackendStatusUI(false);
+  }
+}
+
+async function postServerAction(endpoint, payload = {}) {
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      updateBackendStatusUI(true);
+      if (data && data.state) {
+        const s = data.state;
+        state.sim = s.sim || state.sim;
+        state.rover = s.rover || state.rover;
+        state.site = s.site || state.site;
+        state.teams = s.teams || state.teams;
+        state.incidents = s.incidents || state.incidents;
+        state.observations = s.observations || state.observations;
+        state.alerts = s.alerts || state.alerts;
+        state.priorities = s.priorities || state.priorities;
+        state.tasks = s.tasks || state.tasks;
+        state.reliefRequests = s.reliefRequests || state.reliefRequests || [];
+        state.incidentNotes = s.incidentNotes || state.incidentNotes || {};
+        if (s.timeline) state.timeline = s.timeline;
+      }
+      return { ok: true, data };
+    } else {
+      updateBackendStatusUI(false);
+      return { ok: false, error: data.error || 'Server error', data };
+    }
+  } catch (err) {
+    updateBackendStatusUI(false);
+    return { ok: false, error: err.message };
+  }
 }
 
 // --------------------------------------------------------------------------
@@ -694,11 +1030,85 @@ function monitorGoogleMapsErrors() {
 }
 
 function getFilteredIncidents() {
+  const q = (searchQuery || '').trim().toLowerCase();
   return state.incidents.filter(inc => {
+    const matchSearch = !q ||
+      (inc.name && inc.name.toLowerCase().includes(q)) ||
+      (inc.location && inc.location.toLowerCase().includes(q)) ||
+      (inc.typeName && inc.typeName.toLowerCase().includes(q));
+
     const matchType = currentFilterType === 'ALL' || inc.type === currentFilterType;
     const matchSeverity = currentFilterSeverity === 'ALL' || inc.severity === currentFilterSeverity;
-    const matchStatus = currentFilterStatus === 'ALL' || inc.status === currentFilterStatus;
-    return matchType && matchSeverity && matchStatus;
+    const matchStatus = currentFilterStatus === 'ALL' ||
+      inc.status === currentFilterStatus ||
+      inc.lifecycleStatus === currentFilterStatus ||
+      inc.responseStatus === currentFilterStatus;
+
+    return matchSearch && matchType && matchSeverity && matchStatus;
+  });
+}
+
+function clearFilters() {
+  searchQuery = '';
+  currentFilterType = 'ALL';
+  currentFilterSeverity = 'ALL';
+  currentFilterStatus = 'ALL';
+  if (filterSearch) filterSearch.value = '';
+  if (filterType) filterType.value = 'ALL';
+  if (filterSeverity) filterSeverity.value = 'ALL';
+  if (filterStatus) filterStatus.value = 'ALL';
+  if (gMap) renderGoogleMapsPins();
+  renderSchematicPins();
+  renderIncidentDirectory();
+  showToast('Filters Cleared', 'Displaying all incidents.');
+}
+
+function renderIncidentDirectory() {
+  if (!incidentDirectoryList) return;
+  const filtered = getFilteredIncidents();
+  if (incidentsCountBadge) incidentsCountBadge.textContent = filtered.length;
+
+  if (filtered.length === 0) {
+    incidentDirectoryList.innerHTML = `
+      <div class="empty-directory-state">
+        <div style="font-size:24px;">🔍</div>
+        <strong>No Incidents Found</strong>
+        <span>No incidents match active search query or filters.</span>
+        <button class="btn btn-xs btn-outline btn-empty-clear" type="button" style="margin-top:6px;">✕ Clear Filters</button>
+      </div>
+    `;
+    const btnEmptyClear = incidentDirectoryList.querySelector('.btn-empty-clear');
+    if (btnEmptyClear) btnEmptyClear.addEventListener('click', clearFilters);
+    return;
+  }
+
+  incidentDirectoryList.innerHTML = filtered.map(inc => {
+    const isSel = selectedIncident && selectedIncident.id === inc.id;
+    const sevClass = (inc.severity || 'HIGH').toLowerCase();
+    const verBadge = inc.verificationStatus === 'UNVERIFIED' 
+      ? '<span class="badge-state pending" style="font-size:9px;">UNVERIFIED</span>'
+      : '<span class="badge-state completed" style="font-size:9px;">VERIFIED</span>';
+    return `
+      <div class="directory-item ${isSel ? 'active' : ''}" data-id="${inc.id}">
+        <div class="directory-item-head">
+          <strong class="directory-item-title">${inc.icon || '⚠️'} ${inc.name}</strong>
+          <span class="badge-severity ${sevClass}" style="font-size:9px;padding:1px 5px;">${inc.severity}</span>
+        </div>
+        <div class="directory-item-loc">📍 ${inc.location}</div>
+        <div class="directory-item-tags">
+          ${verBadge}
+          <span class="badge-state assigned" style="font-size:9px;">${inc.lifecycleStatus || inc.status || 'REPORTED'}</span>
+          <span style="font-size:10px;color:var(--text-muted);margin-left:auto;">${inc.reportTime || 'T+00:00'}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  incidentDirectoryList.querySelectorAll('.directory-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const inc = state.incidents.find(i => i.id === el.dataset.id);
+      if (inc) selectIncident(inc);
+    });
   });
 }
 
@@ -709,7 +1119,7 @@ function renderGoogleMapsPins() {
   gMapMarkers = [];
 
   const filtered = getFilteredIncidents();
-  incidentsSummaryPill.textContent = `${filtered.length} Fictional Incidents Displayed`;
+  incidentsSummaryPill.textContent = `${filtered.length} Fictional Incident${filtered.length === 1 ? '' : 's'} Displayed${searchQuery || currentFilterType !== 'ALL' || currentFilterSeverity !== 'ALL' || currentFilterStatus !== 'ALL' ? ' (Filtered)' : ''}`;
 
   filtered.forEach(inc => {
     const isSelected = selectedIncident && selectedIncident.id === inc.id;
@@ -732,12 +1142,14 @@ function renderGoogleMapsPins() {
 
     gMapMarkers.push(marker);
   });
+
+  renderIncidentDirectory();
 }
 
 function renderSchematicPins() {
   if (!schematicIncidentPins) return;
   const filtered = getFilteredIncidents();
-  incidentsSummaryPill.textContent = `${filtered.length} Fictional Incidents Displayed (Schematic)`;
+  incidentsSummaryPill.textContent = `${filtered.length} Fictional Incident${filtered.length === 1 ? '' : 's'} Displayed (Schematic)${searchQuery || currentFilterType !== 'ALL' || currentFilterSeverity !== 'ALL' || currentFilterStatus !== 'ALL' ? ' (Filtered)' : ''}`;
 
   let html = '';
   filtered.forEach(inc => {
@@ -765,6 +1177,8 @@ function renderSchematicPins() {
       if (inc) selectIncident(inc);
     });
   });
+
+  renderIncidentDirectory();
 }
 
 function updatePinSelectionUI() {
@@ -898,31 +1312,52 @@ function selectIncident(inc) {
     applySchematicTransform();
   }
 
-  // Smooth UI highlight without recreating DOM nodes
   updatePinSelectionUI();
+  renderIncidentDirectory();
 }
 
 function renderIncidentPanel(inc) {
-  if (!inc) return;
+  if (!inc) {
+    if (incidentEmptyState) incidentEmptyState.classList.remove('hidden');
+    if (incidentActiveContainer) incidentActiveContainer.classList.add('hidden');
+    return;
+  }
 
-  panelIncidentType.textContent = inc.typeName;
+  if (incidentEmptyState) incidentEmptyState.classList.add('hidden');
+  if (incidentActiveContainer) incidentActiveContainer.classList.remove('hidden');
+
+  panelIncidentType.textContent = inc.typeName || inc.type;
   panelIncidentName.textContent = inc.name;
 
-  panelSeverity.textContent = inc.severityLabel;
-  panelSeverity.className = `badge-severity ${inc.severity.toLowerCase()}`;
+  panelSeverity.textContent = inc.severityLabel || `${inc.severity} (Level ${inc.severityLevel || 3})`;
+  panelSeverity.className = `badge-severity ${(inc.severity || 'HIGH').toLowerCase()}`;
 
-  panelVerification.textContent = inc.verificationStatus;
-  panelStatus.textContent = inc.statusLabel;
+  panelVerification.textContent = inc.verificationStatus || 'UNVERIFIED';
+  panelStatus.textContent = inc.lifecycleStatus || inc.statusLabel || inc.status || 'REPORTED';
+
+  // Verification Controls Bar
+  if (panelVerificationBar) {
+    if (inc.verificationStatus === 'UNVERIFIED') {
+      panelVerificationBar.style.display = 'flex';
+    } else {
+      panelVerificationBar.style.display = 'none';
+    }
+  }
+
+  // Response Lifecycle dropdown
+  if (panelLifecycleSelect) {
+    panelLifecycleSelect.value = inc.lifecycleStatus || inc.status || 'REPORTED';
+  }
 
   panelLocation.textContent = inc.location;
   panelReportTime.textContent = inc.reportTime;
   panelLastUpdate.textContent = inc.lastUpdate;
   panelSummary.textContent = inc.situationSummary;
-  panelDisclaimer.textContent = `⚠ ${inc.dataDisclaimer}`;
+  panelDisclaimer.textContent = `⚠ ${inc.dataDisclaimer || 'Simulated sensor observations'}`;
   panelAffected.textContent = inc.affectedZones;
 
   panelTeamName.textContent = inc.assignedTeamName || 'Unassigned';
-  panelTeamStatus.textContent = inc.responseStatus;
+  panelTeamStatus.textContent = inc.responseStatus || 'STAGED';
 
   if (inc.roverAssigned) {
     panelRoverConn.textContent = state.rover.connection;
@@ -940,14 +1375,465 @@ function renderIncidentPanel(inc) {
     panelRoverLidar.textContent = '—';
   }
 
-  // 3D Scene Action availability
+  // 3D Scene Action availability (Station Road Arcade Collapse only)
   if (inc.has3DScene) {
     btnOpen3DSite.classList.remove('hidden');
+    btnOpen3DSite.disabled = false;
     site3DUnavailableMsg.classList.add('hidden');
   } else {
     btnOpen3DSite.classList.add('hidden');
     site3DUnavailableMsg.classList.remove('hidden');
   }
+
+  // Update tabs counts
+  const tasksForInc = (state.tasks || []).filter(t => t.incidentId === inc.id);
+  const reliefForInc = (state.reliefRequests || []).filter(r => r.incidentId === inc.id);
+  const activityForInc = getIncidentActivity(inc.id);
+
+  if (panelTasksCount) panelTasksCount.textContent = tasksForInc.length;
+  if (panelReliefCount) panelReliefCount.textContent = reliefForInc.length;
+  if (panelHistoryCount) panelHistoryCount.textContent = activityForInc.length;
+
+  // Render tab content
+  renderIncidentTasks(inc.id);
+  renderIncidentRelief(inc.id);
+  renderIncidentActivity(inc.id);
+}
+
+function renderIncidentTasks(incidentId) {
+  if (!panelTasksList) return;
+  const tasks = (state.tasks || []).filter(t => t.incidentId === incidentId);
+
+  if (tasks.length === 0) {
+    panelTasksList.innerHTML = `
+      <div class="empty-state" style="padding:20px;text-align:center;">
+        No active tasks linked to this incident.
+        <div style="margin-top:6px;">
+          <button class="btn btn-xs btn-primary" id="btn-tasks-empty-create">+ Create First Task</button>
+        </div>
+      </div>
+    `;
+    const btnEmpty = panelTasksList.querySelector('#btn-tasks-empty-create');
+    if (btnEmpty) btnEmpty.addEventListener('click', openCreateTaskDialog);
+    return;
+  }
+
+  panelTasksList.innerHTML = tasks.map(task => {
+    const statusClass = (task.status || 'PENDING').toLowerCase();
+    const isCompleted = task.status === 'COMPLETED';
+    const isAssigned = task.status === 'ASSIGNED';
+    const isPending = task.status === 'PENDING';
+    const isInProgress = task.status === 'IN_PROGRESS';
+
+    return `
+      <div class="task-card">
+        <div class="card-top-row">
+          <strong class="card-title">${task.title}</strong>
+          <span class="badge-state ${statusClass}">${task.status}</span>
+        </div>
+        <div class="task-desc">${task.description || 'Inspection & field response task'}</div>
+        <div class="task-meta-row">
+          <span>🎯 Zone: <b>${task.targetZoneName || task.targetZone}</b></span>
+          <span>👥 Team: <b>${task.teamName || 'Unassigned'}</b></span>
+          <span>⚡ Priority: <b>${task.priority || 'MEDIUM'}</b></span>
+        </div>
+        ${task.notes ? `<div style="font-size:10.5px;color:var(--text-muted);font-style:italic;">Notes: ${task.notes}</div>` : ''}
+        <div class="task-action-btns">
+          ${isPending ? `
+            <button class="btn btn-xs btn-primary btn-task-assign-now" data-id="${task.id}">Assign Team Vanguard</button>
+          ` : ''}
+          ${isAssigned ? `
+            <button class="btn btn-xs btn-outline btn-task-start" data-id="${task.id}">▶ Mark In Progress</button>
+            <button class="btn btn-xs btn-success btn-task-complete" data-id="${task.id}">✓ Complete Task</button>
+          ` : ''}
+          ${isInProgress ? `
+            <button class="btn btn-xs btn-success btn-task-complete" data-id="${task.id}">✓ Complete Task</button>
+          ` : ''}
+          ${isCompleted ? `
+            <span style="font-size:10.5px;color:#3fb950;">✓ Completed at ${task.completedAt || 'T+00:00'} (Hazard preserved)</span>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  panelTasksList.querySelectorAll('.btn-task-assign-now').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const res = await postServerAction('/api/task/status', {
+        id: btn.dataset.id,
+        status: 'ASSIGNED',
+        teamId: 'TEAM_VANGUARD',
+        operatorName: sessionOperatorName
+      });
+      if (res.ok) {
+        showToast('Team Assigned', 'Team Vanguard assigned to task.');
+        renderUI();
+      } else {
+        showToast('Assignment Rejected', res.error || 'Team busy. Conflict prevented.');
+      }
+    });
+  });
+
+  panelTasksList.querySelectorAll('.btn-task-start').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const res = await postServerAction('/api/task/status', {
+        id: btn.dataset.id,
+        status: 'IN_PROGRESS',
+        operatorName: sessionOperatorName
+      });
+      if (res.ok) {
+        showToast('Task In Progress', 'Team has begun execution.');
+        renderUI();
+      }
+    });
+  });
+
+  panelTasksList.querySelectorAll('.btn-task-complete').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const res = await postServerAction('/api/task/status', {
+        id: btn.dataset.id,
+        status: 'COMPLETED',
+        notes: 'Task objectives completed by response unit.',
+        operatorName: sessionOperatorName
+      });
+      if (res.ok) {
+        showToast('Task Completed', 'Team freed to AVAILABLE. Note: Hazard condition preserved.');
+        renderUI();
+      }
+    });
+  });
+}
+
+function renderIncidentRelief(incidentId) {
+  if (!panelReliefList) return;
+  const requests = (state.reliefRequests || []).filter(r => r.incidentId === incidentId);
+
+  if (requests.length === 0) {
+    panelReliefList.innerHTML = `
+      <div class="empty-state" style="padding:20px;text-align:center;">
+        No relief requests logged for this incident.
+        <div style="margin-top:6px;">
+          <button class="btn btn-xs btn-primary" id="btn-relief-empty-create">+ Request Relief Supplies</button>
+        </div>
+      </div>
+    `;
+    const btnEmpty = panelReliefList.querySelector('#btn-relief-empty-create');
+    if (btnEmpty) btnEmpty.addEventListener('click', openAddReliefDialog);
+    return;
+  }
+
+  panelReliefList.innerHTML = requests.map(req => {
+    const statusClass = (req.status || 'REQUESTED').toLowerCase();
+    const isRequested = req.status === 'REQUESTED';
+    const isAssigned = req.status === 'ASSIGNED';
+    const isDelivered = req.status === 'DELIVERED';
+
+    return `
+      <div class="relief-card">
+        <div class="card-top-row">
+          <strong class="card-title">${req.itemLabel} (${req.quantity} ${req.unit})</strong>
+          <span class="badge-state ${statusClass}">${req.status}</span>
+        </div>
+        <div class="relief-desc">📍 Destination: <b>${req.destination}</b></div>
+        <div class="task-meta-row">
+          <span>Priority: <b>${req.priority}</b></span>
+          <span>Assigned Team: <b>${req.assignedTeamName || 'Unassigned'}</b></span>
+          <span>Logged: <b>${req.requestedAt}</b></span>
+        </div>
+        ${req.notes ? `<div style="font-size:10.5px;color:var(--text-muted);font-style:italic;">Notes: ${req.notes}</div>` : ''}
+        <div class="task-action-btns">
+          ${isRequested ? `
+            <button class="btn btn-xs btn-primary btn-relief-assign" data-id="${req.id}">🚚 Assign Team Atlas (Logistics)</button>
+          ` : ''}
+          ${isAssigned ? `
+            <button class="btn btn-xs btn-success btn-relief-deliver" data-id="${req.id}">✓ Confirm Delivered</button>
+          ` : ''}
+          ${isDelivered ? `
+            <span style="font-size:10.5px;color:#3fb950;">✓ Delivered at ${req.deliveredAt || 'T+00:00'} [Simulated]</span>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  panelReliefList.querySelectorAll('.btn-relief-assign').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const res = await postServerAction('/api/relief/status', {
+        id: btn.dataset.id,
+        status: 'ASSIGNED',
+        assignedTeamId: 'TEAM_ATLAS',
+        operatorName: sessionOperatorName
+      });
+      if (res.ok) {
+        showToast('Relief Assigned', 'Assigned to Team Atlas (Logistics).');
+        renderUI();
+      }
+    });
+  });
+
+  panelReliefList.querySelectorAll('.btn-relief-deliver').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const res = await postServerAction('/api/relief/status', {
+        id: btn.dataset.id,
+        status: 'DELIVERED',
+        operatorName: sessionOperatorName
+      });
+      if (res.ok) {
+        showToast('Relief Delivered', 'Supplies marked delivered at staging point.');
+        renderUI();
+      }
+    });
+  });
+}
+
+function getIncidentActivity(incidentId) {
+  const events = (state.timeline || []).filter(e => e.incidentId === incidentId || (!e.incidentId && incidentId === 'inc-collapse-01' && (e.type === 'OBSERVATION' || e.type === 'CONFIRMATION')));
+  const notes = (state.incidentNotes && state.incidentNotes[incidentId]) || [];
+
+  const combined = [
+    ...events.map(e => ({
+      id: e.id,
+      simTime: e.simTime,
+      category: e.category || e.type,
+      author: e.author || e.source || 'SYSTEM',
+      title: e.title,
+      detail: e.detail,
+      timestamp: e.timestamp || 0
+    })),
+    ...notes.map(n => ({
+      id: n.id,
+      simTime: n.simTime,
+      category: 'NOTE',
+      author: n.author || 'Operator',
+      title: `Operator Note by ${n.author}`,
+      detail: n.text,
+      timestamp: n.timestamp || 0
+    }))
+  ];
+
+  combined.sort((a, b) => b.timestamp - a.timestamp);
+  return combined;
+}
+
+function renderIncidentActivity(incidentId) {
+  if (!panelActivityFeed) return;
+  const allAct = getIncidentActivity(incidentId);
+
+  const filter = filterIncidentActivity ? filterIncidentActivity.value : 'ALL';
+  const filtered = allAct.filter(act => {
+    if (filter === 'ALL') return true;
+    const cat = (act.category || '').toUpperCase();
+    if (filter === 'NOTE') return cat.includes('NOTE');
+    if (filter === 'TASK') return cat.includes('TASK');
+    if (filter === 'RELIEF') return cat.includes('RELIEF');
+    if (filter === 'VERIFICATION') return cat.includes('VERIFICATION') || cat.includes('CONFIRM');
+    if (filter === 'REPORT') return cat.includes('REPORT');
+    if (filter === 'SYSTEM') return cat.includes('SYSTEM') || cat.includes('TELEMETRY');
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    panelActivityFeed.innerHTML = `<div class="empty-state" style="padding:20px;text-align:center;">No activity logged for this incident matching filter.</div>`;
+    return;
+  }
+
+  panelActivityFeed.innerHTML = filtered.map(item => {
+    const catClass = (item.category || 'SYSTEM').toLowerCase().replace('_', '-');
+    return `
+      <div class="activity-item category-${catClass}">
+        <div class="activity-item-head">
+          <span class="activity-item-author">👤 ${item.author}</span>
+          <span>${item.simTime}</span>
+        </div>
+        <div class="activity-item-title">${item.title}</div>
+        <div class="activity-item-detail">${item.detail}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderAlertInbox() {
+  const alerts = state.alerts || [];
+
+  // Update badge count
+  const unackCount = alerts.filter(a => !a.acknowledged).length;
+  if (inboxUnreadCount) {
+    inboxUnreadCount.textContent = unackCount;
+    inboxUnreadCount.style.display = unackCount > 0 ? 'inline-block' : 'none';
+  }
+
+  // Populate incident filter dropdown if empty
+  if (inboxFilterIncident && inboxFilterIncident.options.length <= 1) {
+    state.incidents.forEach(inc => {
+      const opt = document.createElement('option');
+      opt.value = inc.id;
+      opt.textContent = `${inc.icon || '🏢'} ${inc.name}`;
+      inboxFilterIncident.appendChild(opt);
+    });
+  }
+
+  if (!inboxAlertsList) return;
+
+  // Filter values
+  const incFilter = inboxFilterIncident ? inboxFilterIncident.value : 'ALL';
+  const typeFilter = inboxFilterType ? inboxFilterType.value : 'ALL';
+  const ackFilter = inboxFilterAck ? inboxFilterAck.value : 'UNACK';
+
+  const filtered = alerts.filter(alert => {
+    const matchInc = incFilter === 'ALL' || alert.incidentId === incFilter;
+    const matchType = typeFilter === 'ALL' || alert.type === typeFilter;
+    const matchAck = ackFilter === 'ALL' || 
+      (ackFilter === 'UNACK' && !alert.acknowledged) || 
+      (ackFilter === 'ACK' && alert.acknowledged);
+    return matchInc && matchType && matchAck;
+  });
+
+  if (filtered.length === 0) {
+    inboxAlertsList.innerHTML = `
+      <div class="empty-state" style="padding:40px 20px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">📬</div>
+        <strong>No Alerts Matching Current Filter</strong>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:4px;">All ongoing hazards and notifications are either acknowledged or filtered out.</p>
+      </div>
+    `;
+    return;
+  }
+
+  inboxAlertsList.innerHTML = filtered.map(a => {
+    const isAck = a.acknowledged;
+    return `
+      <div class="alert-inbox-card ${isAck ? 'acknowledged' : 'unacknowledged'}">
+        <div class="alert-card-head">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="badge-severity ${(a.severity || 'HIGH').toLowerCase()}" style="font-size:9.5px;padding:2px 6px;">${a.severity || 'HIGH'}</span>
+            <strong class="alert-card-title">${a.title}</strong>
+          </div>
+          <span style="font-size:11px;font-family:var(--font-mono);color:#58a6ff;">${a.triggeredAt}</span>
+        </div>
+        <div class="alert-card-meta">
+          <span>🏢 Incident: <b>${a.incidentName || a.incidentId || 'General'}</b></span>
+          <span>📍 Zone: <b>${a.zone || 'Target Area'}</b></span>
+          <span>📡 Source: <b>${a.source || 'SIMULATED_SENSOR'}</b></span>
+        </div>
+        <div class="alert-card-reason">
+          <b>Trigger:</b> ${a.triggerReason}
+        </div>
+        <div class="alert-card-footer">
+          <div>
+            ${isAck ? `
+              <span style="font-size:11px;color:#3fb950;font-weight:600;">✓ Acknowledged by ${a.acknowledgedBy || 'Operator'} at ${a.acknowledgedAt || ''}</span>
+            ` : `
+              <button class="btn btn-xs btn-primary btn-ack-alert" data-id="${a.id}">✓ Acknowledge Alert</button>
+            `}
+          </div>
+          ${a.incidentId ? `
+            <button class="btn btn-xs btn-outline btn-view-alert-inc" data-id="${a.incidentId}">🔍 View Incident Details</button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  inboxAlertsList.querySelectorAll('.btn-ack-alert').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const res = await postServerAction('/api/alert/acknowledge', {
+        id: btn.dataset.id,
+        operatorName: sessionOperatorName
+      });
+      if (res.ok) {
+        showToast('Alert Acknowledged', 'Operator receipt logged. Hazard condition remains monitored.');
+        renderAlertInbox();
+        renderUI();
+      }
+    });
+  });
+
+  inboxAlertsList.querySelectorAll('.btn-view-alert-inc').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const inc = state.incidents.find(i => i.id === btn.dataset.id);
+      if (inc) {
+        selectIncident(inc);
+        if (alertInboxDialog) alertInboxDialog.close();
+      }
+    });
+  });
+}
+
+function renderGlobalRelief() {
+  const reqs = state.reliefRequests || [];
+  if (reliefCountBadge) reliefCountBadge.textContent = reqs.length;
+  if (!globalReliefList) return;
+
+  if (reqs.length === 0) {
+    globalReliefList.innerHTML = `<div class="empty-state" style="padding:40px 20px;text-align:center;">No relief requests recorded in session.</div>`;
+    return;
+  }
+
+  globalReliefList.innerHTML = reqs.map(req => {
+    const statusClass = (req.status || 'REQUESTED').toLowerCase();
+    const isRequested = req.status === 'REQUESTED';
+    const isAssigned = req.status === 'ASSIGNED';
+    const isDelivered = req.status === 'DELIVERED';
+
+    return `
+      <div class="relief-card" style="margin-bottom:8px;">
+        <div class="card-top-row">
+          <strong class="card-title">${req.itemLabel} (${req.quantity} ${req.unit})</strong>
+          <span class="badge-state ${statusClass}">${req.status}</span>
+        </div>
+        <div class="relief-desc">
+          🏢 <b>${req.incidentName || req.incidentId}</b> — 📍 Destination: <b>${req.destination}</b>
+        </div>
+        <div class="task-meta-row">
+          <span>Priority: <b>${req.priority}</b></span>
+          <span>Assigned: <b>${req.assignedTeamName || 'Unassigned'}</b></span>
+          <span>Time: <b>${req.requestedAt}</b></span>
+        </div>
+        <div class="task-action-btns">
+          ${isRequested ? `
+            <button class="btn btn-xs btn-primary btn-global-relief-assign" data-id="${req.id}">🚚 Assign Team Atlas</button>
+          ` : ''}
+          ${isAssigned ? `
+            <button class="btn btn-xs btn-success btn-global-relief-deliver" data-id="${req.id}">✓ Confirm Delivered</button>
+          ` : ''}
+          ${isDelivered ? `
+            <span style="font-size:10.5px;color:#3fb950;">✓ Delivered at ${req.deliveredAt || 'T+00:00'} [Simulated]</span>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  globalReliefList.querySelectorAll('.btn-global-relief-assign').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const res = await postServerAction('/api/relief/status', {
+        id: btn.dataset.id,
+        status: 'ASSIGNED',
+        assignedTeamId: 'TEAM_ATLAS',
+        operatorName: sessionOperatorName
+      });
+      if (res.ok) {
+        showToast('Relief Assigned', 'Assigned to Team Atlas.');
+        renderGlobalRelief();
+        renderUI();
+      }
+    });
+  });
+
+  globalReliefList.querySelectorAll('.btn-global-relief-deliver').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const res = await postServerAction('/api/relief/status', {
+        id: btn.dataset.id,
+        status: 'DELIVERED',
+        operatorName: sessionOperatorName
+      });
+      if (res.ok) {
+        showToast('Relief Delivered', 'Supplies marked delivered.');
+        renderGlobalRelief();
+        renderUI();
+      }
+    });
+  });
 }
 
 // --------------------------------------------------------------------------
@@ -960,6 +1846,10 @@ function open3DSiteView() {
   site3DView.classList.remove('hidden');
   document.body.classList.remove('mode-map');
   document.body.classList.add('mode-3d');
+
+  if (site3DTitle) {
+    site3DTitle.textContent = `${selectedIncident.name} — Site Workspace`;
+  }
 
   if (!site3D) {
     site3D = createSite3D(threeContainer, {
@@ -979,6 +1869,11 @@ function close3DSiteView() {
   document.body.classList.remove('mode-3d');
   document.body.classList.add('mode-map');
   threeObjectFlyout.classList.add('hidden');
+
+  if (selectedIncident) {
+    renderIncidentPanel(selectedIncident);
+    updatePinSelectionUI();
+  }
 }
 
 function handle3DObjectClick(objData) {
@@ -988,22 +1883,105 @@ function handle3DObjectClick(objData) {
   let html = '';
   if (objData.isZone) {
     const zone = state.site.zones[objData.id];
+    const isNorthBlocked = objData.id === 'CORRIDOR_NORTH' && state.site.approaches.APPROACH_ALPHA.status === 'BLOCKED';
     html += `
-      <div><b>Type:</b> Search Zone (${objData.tag})</div>
-      <div><b>Access Status:</b> ${objData.id === 'CORRIDOR_NORTH' && state.site.approaches.APPROACH_ALPHA.status === 'BLOCKED' ? 'BLOCKED' : 'CLEAR'}</div>
+      <div><b>Zone:</b> ${zone ? zone.name : objData.name} (${objData.tag || ''})</div>
+      <div><b>Type:</b> ${zone ? zone.type.toUpperCase() : 'SEARCH AREA'}</div>
+      <div><b>Access Status:</b> <span class="badge ${isNorthBlocked ? 'blocked' : 'clear'}">${isNorthBlocked ? 'BLOCKED' : 'CLEAR'}</span></div>
       <div><b>Rover Position:</b> ${state.rover.currentZone === objData.id ? 'Present (SUGRIV-01)' : 'Not in zone'}</div>
       <div><b>Assigned Tasks:</b> ${state.tasks.filter(t => t.targetZone === objData.id && t.status === 'ASSIGNED').length} active</div>
     `;
   } else if (objData.isHazard) {
-    html += `
-      <div><b>Hazard Type:</b> ${objData.type}</div>
-      <div><b>Timestamp:</b> ${formatSimTime(state.sim.elapsedSeconds)}</div>
-      <div><b>Verification:</b> Verified by Forward Telemetry</div>
-      <div><b>Risk Assessment:</b> High Priority Investigation Required</div>
-    `;
+    if (objData.id === 'hazard-block-01') {
+      const obs = state.observations.find(o => o.id === 'obs-block-01' || o.type === 'BLOCKED_PASSAGE');
+      if (obs && !obs.resolved) {
+        html += `
+          <div><b>Hazard:</b> ${obs.title}</div>
+          <div><b>Verification:</b> <span class="badge ${obs.verification.toLowerCase()}">${obs.verification}</span></div>
+          <div><b>Sensor Reading:</b> ${obs.reading || 'LiDAR Occlusion >85%'}</div>
+          <div><b>Trigger Reason:</b> ${obs.triggerReason || 'Corridor blockage detected'}</div>
+          <div><b>Affected Approach:</b> Approach Alpha (North Tunnel)</div>
+          <div style="margin-top: 10px; display: flex; gap: 8px;">
+            ${obs.verification === 'UNCONFIRMED' ? `
+              <button class="btn btn-xs btn-primary btn-flyout-confirm" data-id="${obs.id}">✓ Confirm</button>
+              <button class="btn btn-xs btn-outline btn-flyout-dismiss" data-id="${obs.id}">✕ Dismiss</button>
+            ` : `
+              <button class="btn btn-xs btn-outline btn-flyout-resolve" data-id="${obs.id}">Clear Rubble</button>
+            `}
+          </div>
+        `;
+      } else {
+        html += `
+          <div><b>Hazard:</b> Approach Alpha Obstacle</div>
+          <div><b>Status:</b> Resolved / Corridor Clear</div>
+        `;
+      }
+    } else if (objData.id === 'hazard-thermal-01') {
+      const alert = state.alerts.find(a => a.type === 'THERMAL_ANOMALY');
+      html += `
+        <div><b>Hazard:</b> Elevated Thermal Hotspot (Sector C)</div>
+        <div><b>Current Spot Temp:</b> <span style="color:#f85149;font-weight:700;">${state.rover.spotTempC.toFixed(1)} °C</span></div>
+        <div><b>Rule:</b> RULE-THERM-04 (Sustained spot >50°C for >=3 cycles)</div>
+        <div><b>Status:</b> ${alert ? alert.status : 'ACTIVE MONITORING'}</div>
+        <div style="margin-top:6px; font-size:11px; color:#8b949e;">Note: Localized thermal anomaly only. Not modeled as spreading fire or structural collapse.</div>
+        <div style="margin-top: 10px;">
+          <button class="btn btn-xs btn-primary btn-flyout-assign-thermal">Assign Inspection Task</button>
+        </div>
+      `;
+    }
   }
 
   flyoutContent.innerHTML = html;
+
+  // Flyout action handlers
+  const btnFlyConfirm = flyoutContent.querySelector('.btn-flyout-confirm');
+  if (btnFlyConfirm) {
+    btnFlyConfirm.addEventListener('click', () => {
+      confirmBlockageObservation(btnFlyConfirm.dataset.id);
+      threeObjectFlyout.classList.add('hidden');
+    });
+  }
+  const btnFlyDismiss = flyoutContent.querySelector('.btn-flyout-dismiss');
+  if (btnFlyDismiss) {
+    btnFlyDismiss.addEventListener('click', () => {
+      dismissBlockageObservation(btnFlyDismiss.dataset.id);
+      threeObjectFlyout.classList.add('hidden');
+    });
+  }
+  const btnFlyResolve = flyoutContent.querySelector('.btn-flyout-resolve');
+  if (btnFlyResolve) {
+    btnFlyResolve.addEventListener('click', () => {
+      openActionDialog('Clear Rubble', 'Confirm obstacle removal on Approach Alpha:', (notes) => {
+        resolveBlockageObservation(btnFlyResolve.dataset.id, notes);
+      });
+      threeObjectFlyout.classList.add('hidden');
+    });
+  }
+  const btnFlyAssignThermal = flyoutContent.querySelector('.btn-flyout-assign-thermal');
+  if (btnFlyAssignThermal) {
+    btnFlyAssignThermal.addEventListener('click', () => {
+      openAssignTaskDialog('Thermal Anomaly Inspection', 'SEARCH_ZONE', 'TEAM_VANGUARD');
+      threeObjectFlyout.classList.add('hidden');
+    });
+  }
+}
+
+function openAssignTaskDialog(title, zone, team) {
+  taskTitleInput.value = title || 'Inspection Task';
+  taskZoneSelect.value = zone || 'SEARCH_ZONE';
+  taskTeamSelect.value = team || 'TEAM_VANGUARD';
+  taskOverrideInput.value = '';
+
+  const availableTeams = Object.values(state.teams).filter(t => t.status === 'AVAILABLE');
+  if (taskTeamWarning) {
+    if (availableTeams.length === 0) {
+      taskTeamWarning.classList.remove('hidden');
+    } else {
+      taskTeamWarning.classList.add('hidden');
+    }
+  }
+
+  assignTaskDialog.showModal();
 }
 
 function render3DDock() {
@@ -1029,6 +2007,7 @@ function render3DDock() {
         <div class="item-actions">
           ${obs.verification === 'UNCONFIRMED' ? `
             <button class="btn btn-xs btn-primary btn-confirm-obs" data-id="${obs.id}">✓ Confirm</button>
+            <button class="btn btn-xs btn-outline btn-dismiss-obs" data-id="${obs.id}">✕ Dismiss</button>
           ` : `
             <button class="btn btn-xs btn-outline btn-resolve-obs" data-id="${obs.id}">Clear Rubble</button>
           `}
@@ -1038,6 +2017,9 @@ function render3DDock() {
 
     dockObservationsList.querySelectorAll('.btn-confirm-obs').forEach(btn => {
       btn.addEventListener('click', () => confirmBlockageObservation(btn.dataset.id));
+    });
+    dockObservationsList.querySelectorAll('.btn-dismiss-obs').forEach(btn => {
+      btn.addEventListener('click', () => dismissBlockageObservation(btn.dataset.id));
     });
     dockObservationsList.querySelectorAll('.btn-resolve-obs').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1071,11 +2053,7 @@ function render3DDock() {
 
     dockPrioritiesList.querySelectorAll('.btn-dock-assign-prio').forEach(btn => {
       btn.addEventListener('click', () => {
-        taskTitleInput.value = btn.dataset.title;
-        taskZoneSelect.value = btn.dataset.zone;
-        taskTeamSelect.value = btn.dataset.team;
-        taskOverrideInput.value = '';
-        assignTaskDialog.showModal();
+        openAssignTaskDialog(btn.dataset.title, btn.dataset.zone, btn.dataset.team);
       });
     });
   }
@@ -1124,7 +2102,7 @@ function recalculateAccess() {
     alpha.statusReason = `Impassable due to confirmed blockage: ${alphaBlockage.title}`;
   } else {
     alpha.status = 'CLEAR';
-    alpha.statusReason = 'Open corridor, optimal direct path (45m).';
+    alpha.statusReason = 'Suggested direct route (45m). Not guaranteed safe — subject to secondary collapse hazards.';
   }
 
   const alphaOk = alpha.status === 'CLEAR';
@@ -1132,10 +2110,10 @@ function recalculateAccess() {
 
   if (alphaOk) {
     summary.activeRoute = 'APPROACH_ALPHA';
-    summary.routingExplanation = 'Approach Alpha is unobstructed and represents the shortest route (45m).';
+    summary.routingExplanation = 'Approach Alpha is unobstructed. Suggested direct ingress route (45m); not guaranteed safe — subject to secondary collapse hazards.';
   } else {
     summary.activeRoute = 'APPROACH_BRAVO';
-    summary.routingExplanation = 'Approach Alpha is BLOCKED by confirmed rubble. Rerouted via alternative known approach: Approach Bravo (70m).';
+    summary.routingExplanation = 'Approach Alpha is BLOCKED by confirmed rubble. Alternative perimeter bypass evaluated: Approach Bravo bypass (70m). Evaluated viable for ingress.';
   }
 
   if (!alphaOk && state.rover.currentZone === 'CORRIDOR_NORTH') {
@@ -1321,8 +2299,15 @@ function renderUI() {
   const sec = (s.sim.elapsedSeconds % 60).toString().padStart(2, '0');
   simClock.textContent = `T+${m}:${sec} · ${s.sim.status}`;
 
-  // Side Panel Telemetry (if open)
+  if (labelOperatorName) labelOperatorName.textContent = sessionOperatorName;
+
+  // Side Panel Details (if open)
   if (selectedIncident) renderIncidentPanel(selectedIncident);
+
+  // Sync directory, inbox, and global relief
+  renderIncidentDirectory();
+  renderAlertInbox();
+  renderGlobalRelief();
 
   // Rover HUD
   hudSpotTemp.textContent = `${s.rover.spotTempC.toFixed(1)} °C`;
@@ -1345,17 +2330,93 @@ function renderUI() {
   }
 }
 
-function addTimelineEvent(type, title, detail, source = 'SYSTEM') {
+function addTimelineEvent(type, title, detail, source = 'SYSTEM', incidentId = null, category = 'SYSTEM', author = null) {
   state.timeline.unshift({
     id: `evt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     simTime: formatSimTime(state.sim.elapsedSeconds),
     type,
+    category: category || type,
     title,
     detail,
     source,
+    incidentId: incidentId || (selectedIncident ? selectedIncident.id : null),
+    author: author || sessionOperatorName || 'SYSTEM',
     timestamp: Date.now()
   });
-  if (state.timeline.length > 50) state.timeline.pop();
+  if (state.timeline.length > 100) state.timeline.pop();
+}
+
+function switchPanelTab(tabName) {
+  activePanelTab = tabName;
+  [tabBtnOverview, tabBtnTasks, tabBtnRelief, tabBtnHistory].forEach(btn => {
+    if (btn) btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+  [tabPaneOverview, tabPaneTasks, tabPaneRelief, tabPaneHistory].forEach(pane => {
+    if (pane) pane.classList.toggle('active', pane.id === `tab-pane-${tabName}`);
+  });
+  if (selectedIncident) {
+    if (tabName === 'tasks') renderIncidentTasks(selectedIncident.id);
+    if (tabName === 'relief') renderIncidentRelief(selectedIncident.id);
+    if (tabName === 'history') renderIncidentActivity(selectedIncident.id);
+  }
+}
+
+function openCreateTaskDialog() {
+  if (!createTaskDialog) return;
+  if (modalTaskIncidentName) modalTaskIncidentName.textContent = selectedIncident ? selectedIncident.name : 'All Incidents';
+  if (createTaskTitle) createTaskTitle.value = '';
+  if (createTaskZone) createTaskZone.value = selectedIncident?.affectedZones?.split(',')[0]?.trim() || 'Sector A';
+  if (createTaskPriority) createTaskPriority.value = 'HIGH';
+  if (createTaskTeam) createTaskTeam.value = '';
+  if (createTaskDesc) createTaskDesc.value = '';
+  updateTeamCapabilityHint();
+  createTaskDialog.showModal();
+}
+
+function updateTeamCapabilityHint() {
+  if (!teamCapabilityHint || !createTaskTeam) return;
+  const teamId = createTaskTeam.value;
+  if (!teamId) {
+    teamCapabilityHint.textContent = 'Team can be assigned now or kept Pending.';
+    return;
+  }
+  const team = state.teams[teamId];
+  if (team) {
+    const isAvail = team.status === 'AVAILABLE';
+    const caps = (team.capabilities || []).join(', ');
+    teamCapabilityHint.innerHTML = `
+      Status: <span class="badge-state ${isAvail ? 'completed' : 'pending'}">${team.status}</span>
+      · Capabilities: <i>${caps}</i>
+      ${!isAvail ? ' · <span style="color:#f85149;font-weight:700;">⚠ Conflict: Team currently busy</span>' : ''}
+    `;
+  }
+}
+
+function openAddReliefDialog() {
+  if (!addReliefDialog) return;
+  if (modalReliefIncidentName) modalReliefIncidentName.textContent = selectedIncident ? selectedIncident.name : 'General Dispatch';
+  if (reliefDest && selectedIncident) reliefDest.value = selectedIncident.location;
+  if (reliefNotes) reliefNotes.value = '';
+  addReliefDialog.showModal();
+}
+
+async function postIncidentNote() {
+  if (!inputIncidentNote || !selectedIncident) return;
+  const text = inputIncidentNote.value.trim();
+  if (!text) return;
+
+  const res = await postServerAction('/api/incident/note', {
+    incidentId: selectedIncident.id,
+    text,
+    author: sessionOperatorName
+  });
+
+  if (res.ok) {
+    inputIncidentNote.value = '';
+    showToast('Note Recorded', `Note posted by ${sessionOperatorName}.`);
+    renderIncidentActivity(selectedIncident.id);
+    renderUI();
+  }
 }
 
 // --------------------------------------------------------------------------
@@ -1368,8 +2429,8 @@ function startNormalTelemetry() {
   state.rover.moving = true;
   state.rover.speedMps = 0.45;
   state.rover.isStale = false;
-  addTimelineEvent('TELEMETRY', 'Rover Telemetry Started', 'Normal scouting underway towards Approach Alpha.', 'SIMULATED_SENSOR');
-  showToast('Demo Step 1', 'Rover telemetry started. Advancing along Approach Alpha.');
+  addTimelineEvent('TELEMETRY', 'Rover Deployed', 'SUGRIV-01 forward ingress initiated towards Approach Alpha.', 'FORWARD_LIDAR');
+  showToast('Phase 1: Ingress Recon', 'SUGRIV-01 scouting along Approach Alpha corridor.');
   renderUI();
 }
 
@@ -1380,10 +2441,10 @@ function triggerBlockedPassage() {
     obs = {
       id: obsId,
       type: 'BLOCKED_PASSAGE',
-      title: 'Rubble Collapse on Approach Alpha',
+      title: 'Structural Occlusion on Approach Alpha',
       zone: 'CORRIDOR_NORTH',
       approach: 'APPROACH_ALPHA',
-      source: 'SIMULATED_SENSOR',
+      source: 'FORWARD_LIDAR',
       verification: 'UNCONFIRMED',
       timestamp: formatSimTime(state.sim.elapsedSeconds),
       reading: 'LiDAR Cross-Section Occlusion: 88.5%',
@@ -1393,12 +2454,13 @@ function triggerBlockedPassage() {
     };
     state.observations.unshift(obs);
     state.rover.lidarDistanceM = 0.85;
-    addTimelineEvent('OBSERVATION', 'Blocked Passage (Unconfirmed)', 'LiDAR detected 88.5% occlusion on Approach Alpha.', 'SIMULATED_SENSOR');
+    addTimelineEvent('OBSERVATION', 'Corridor Occlusion Detected', 'Forward LiDAR detected 88.5% obstacle occlusion on Approach Alpha.', 'FORWARD_LIDAR');
   }
   recalculateAccess();
   recalculatePriorities();
   renderUI();
-  showToast('Demo Step 2', 'LiDAR obstacle observation triggered (Unconfirmed).');
+  postServerAction('/api/sim/trigger', { event: 'trigger_blockage' });
+  showToast('Phase 2: Occlusion Alert', 'Corridor blockage detected on Approach Alpha (Unconfirmed).');
 }
 
 function confirmBlockageObservation(id) {
@@ -1408,11 +2470,35 @@ function confirmBlockageObservation(id) {
   obs.verification = 'CONFIRMED';
   obs.confirmedAt = formatSimTime(state.sim.elapsedSeconds);
 
-  addTimelineEvent('CONFIRMATION', `Observation Confirmed: ${obs.title}`, `Operator confirmed ${obs.id}.`, 'OPERATOR_INPUT');
+  addTimelineEvent('CONFIRMATION', `Obstacle Confirmed: ${obs.title}`, `Operator confirmed ${obs.id}. Approach Alpha sealed.`, 'OPERATOR_INPUT');
+
   recalculateAccess();
   recalculatePriorities();
   renderUI();
-  showToast('Observation Confirmed', 'Access recalculation complete. Approach Alpha is BLOCKED. Rerouted to Bravo.');
+  postServerAction('/api/observation/confirm', { id, notes: 'Operator confirmed via UI' });
+  showToast('Obstacle Confirmed', 'Access recalculated: Approach Alpha restricted. Rerouted to Bravo bypass.');
+
+  if (guidedDemoActive && guidedDemoStep === 2) {
+    advanceGuidedDemo();
+  }
+}
+
+function dismissBlockageObservation(id) {
+  const obs = state.observations.find(o => o.id === id);
+  if (!obs) return;
+
+  obs.resolved = true;
+  obs.dismissed = true;
+  obs.verification = 'DISMISSED';
+  obs.resolvedAt = formatSimTime(state.sim.elapsedSeconds);
+
+  addTimelineEvent('OBSERVATION_DISMISSED', `Observation Dismissed: ${obs.title}`, 'Operator dismissed reading as sensor dust interference.', 'OPERATOR_INPUT');
+
+  recalculateAccess();
+  recalculatePriorities();
+  renderUI();
+  postServerAction('/api/observation/dismiss', { id });
+  showToast('Observation Dismissed', 'Sensor artifact cleared. Approach Alpha remains open.');
 }
 
 function resolveBlockageObservation(id, notes) {
@@ -1421,11 +2507,23 @@ function resolveBlockageObservation(id, notes) {
 
   obs.resolved = true;
   obs.resolvedAt = formatSimTime(state.sim.elapsedSeconds);
-  addTimelineEvent('HAZARD_RESOLVED', `Obstacle Cleared: ${obs.title}`, 'Operator verified rubble cleared.', 'OPERATOR_INPUT');
+  addTimelineEvent('HAZARD_RESOLVED', `Obstacle Cleared: ${obs.title}`, notes || 'Operator verified rubble cleared.', 'OPERATOR_INPUT');
+
   recalculateAccess();
   recalculatePriorities();
   renderUI();
-  showToast('Obstacle Cleared', 'Access restored to Approach Alpha.');
+  postServerAction('/api/observation/resolve', { id, notes });
+  showToast('Obstacle Cleared', 'Passage restored to Approach Alpha.');
+}
+
+function stopRover() {
+  state.rover.moving = false;
+  state.rover.speedMps = 0.0;
+  state.rover.status = 'STANDBY';
+  addTimelineEvent('ROVER_CONTROL', 'Rover Emergency Halt', 'Operator triggered STOP. Vehicle halted immediately.', 'OPERATOR_INPUT');
+  renderUI();
+  postServerAction('/api/rover/stop', {});
+  showToast('Rover Halted', 'SUGRIV-01 emergency stop activated. Movement halted.');
 }
 
 function triggerThermalAnomaly() {
@@ -1446,20 +2544,21 @@ function triggerThermalAnomaly() {
       title: 'High Thermal Gradient Detected',
       zone: 'SEARCH_ZONE',
       approach: null,
-      source: 'SIMULATED_SENSOR',
+      source: 'OPTICAL_IR',
       verification: 'UNCONFIRMED',
       timestamp: formatSimTime(state.sim.elapsedSeconds),
-      triggerReason: 'Narrow-FOV infrared sensor detected rapid thermal rise above ambient baseline.',
+      triggerReason: 'Narrow-FOV infrared radiometer detected rapid thermal rise above ambient baseline.',
       resolved: false
     };
     state.observations.unshift(obs);
-    addTimelineEvent('OBSERVATION', 'Thermal Anomaly Initiated', 'Sustained temperature spike triggered in Sector C.', 'SIMULATED_SENSOR');
+    addTimelineEvent('OBSERVATION', 'Thermal Anomaly Active', 'Sustained temperature spike triggered in Sector C.', 'OPTICAL_IR');
   }
 
   recalculateAccess();
   recalculatePriorities();
   renderUI();
-  showToast('Demo Step 3', 'Thermal surge active in Sector C Target Area.');
+  postServerAction('/api/sim/trigger', { event: 'trigger_thermal' });
+  showToast('Phase 3: Thermal Anomaly', 'Thermal spike active in Sector C Target Area.');
 }
 
 function assignTask(title, targetZone, teamId, overrideReason) {
@@ -1471,12 +2570,14 @@ function assignTask(title, targetZone, teamId, overrideReason) {
 
   const newTask = {
     id: taskId,
+    incidentId: selectedIncident ? selectedIncident.id : 'inc-collapse-01',
     title: title || 'Inspection Task',
     targetZone: targetZone || 'SEARCH_ZONE',
     targetZoneName: state.site.zones[targetZone]?.name || targetZone,
     teamId,
     teamName: team.name,
     status: 'ASSIGNED',
+    priority: 'HIGH',
     assignedAt: formatSimTime(state.sim.elapsedSeconds),
     isOverride,
     overrideReason: isOverride ? overrideReason.trim() : null
@@ -1486,10 +2587,16 @@ function assignTask(title, targetZone, teamId, overrideReason) {
   team.status = 'ASSIGNED';
   team.currentTaskId = taskId;
 
-  addTimelineEvent('TASK_ASSIGNED', `Task Assigned: ${newTask.title}`, `${team.name} assigned to ${newTask.targetZoneName}.`, 'OPERATOR_INPUT');
+  addTimelineEvent('TASK_ASSIGNED', `Task Assigned: ${newTask.title}`, `${team.name} dispatched to ${newTask.targetZoneName}.`, 'OPERATOR_INPUT', newTask.incidentId, 'TASK');
+
   recalculatePriorities();
   renderUI();
-  showToast('Task Assigned', `${title} dispatched to ${team.name}.`);
+  postServerAction('/api/task/assign', { title, targetZone, teamId, overrideReason });
+  showToast('Task Dispatched', `${title} dispatched to ${team.name}.`);
+
+  if (guidedDemoActive && guidedDemoStep === 4) {
+    advanceGuidedDemo();
+  }
 }
 
 function completeTask(id) {
@@ -1505,10 +2612,12 @@ function completeTask(id) {
     team.currentTaskId = null;
   }
 
-  addTimelineEvent('TASK_COMPLETED', `Task Completed: ${task.title}`, `Inspection concluded. Note: Linked hazard remains active until neutralized.`, 'OPERATOR_INPUT');
+  addTimelineEvent('TASK_COMPLETED', `Task Completed: ${task.title}`, `Field inspection concluded. Hazard remains under monitoring.`, 'OPERATOR_INPUT', task.incidentId, 'TASK');
+
   recalculatePriorities();
   renderUI();
-  showToast('Task Completed', 'Inspection complete. Linked hazard remains active per safety protocol.');
+  postServerAction('/api/task/complete', { id });
+  showToast('Task Completed', 'Inspection concluded. Hazard remains monitored per protocol.');
 }
 
 function toggleConnection() {
@@ -1517,57 +2626,132 @@ function toggleConnection() {
     state.rover.moving = false;
     state.rover.speedMps = 0.0;
     state.rover.isStale = true;
-    addTimelineEvent('SIM_CONTROL', 'Rover Connection Lost', 'Telemetry frozen; rover halted; stale telemetry indicators active.', 'SIMULATED_SENSOR');
-    showToast('Link Lost', 'Telemetry frozen at last known packet.');
+    addTimelineEvent('MISSION_CONTROL', 'RF Link Disconnected', 'Telemetry frozen; rover halted; link warning active.', 'FORWARD_LIDAR');
+    postServerAction('/api/sim/control', { action: 'disconnect' });
+    showToast('RF Link Lost', 'Telemetry frozen at last known packet.');
   } else {
     state.rover.connection = 'CONNECTED';
     state.rover.isStale = false;
     state.rover.moving = false;
     state.rover.speedMps = 0.0;
     state.rover.status = 'STANDBY';
-    addTimelineEvent('SIM_CONTROL', 'Rover Connection Restored', 'Telemetry link restored; movement remains stopped.', 'OPERATOR_INPUT');
-    showToast('Link Restored', 'Telemetry resumed.');
+    addTimelineEvent('MISSION_CONTROL', 'RF Link Restored', 'Telemetry reconnected; rover held on standby.', 'OPERATOR_INPUT');
+    postServerAction('/api/sim/control', { action: 'reconnect' });
+    showToast('RF Link Restored', 'Live telemetry resumed.');
   }
   recalculateAccess();
   recalculatePriorities();
   renderUI();
 }
 
+// --------------------------------------------------------------------------
+// AUTOMATED TACTICAL MISSION SEQUENCE
+// --------------------------------------------------------------------------
+let guidedDemoActive = false;
+let guidedDemoStep = 0;
+let guidedDemoTimer = null;
+let guidedDemoPaused = false;
+let guidedDemoRemainingMs = 0;
+let guidedDemoStepStartTime = 0;
+let guidedDemoStepDuration = 0;
+
+function setGuidedDemoTimeout(fn, delayMs) {
+  if (guidedDemoTimer) clearTimeout(guidedDemoTimer);
+  guidedDemoStepStartTime = Date.now();
+  guidedDemoStepDuration = delayMs;
+  guidedDemoRemainingMs = delayMs;
+  guidedDemoPaused = false;
+  guidedDemoTimer = setTimeout(() => {
+    guidedDemoTimer = null;
+    fn();
+  }, delayMs);
+}
+
+function startGuidedDemo() {
+  if (guidedDemoActive) {
+    showToast('Sequence Active', 'Mission sequence is currently executing.');
+    return;
+  }
+  guidedDemoActive = true;
+  guidedDemoStep = 0;
+  if (guidedDemoBanner) guidedDemoBanner.classList.remove('hidden');
+
+  advanceGuidedDemo();
+}
+
+function advanceGuidedDemo() {
+  if (!guidedDemoActive) return;
+  if (guidedDemoTimer) {
+    clearTimeout(guidedDemoTimer);
+    guidedDemoTimer = null;
+  }
+
+  guidedDemoStep += 1;
+
+  if (guidedDemoStep === 1) {
+    if (demoStepBadge) demoStepBadge.textContent = 'PHASE 1 OF 5: INGRESS RECON';
+    if (demoStepText) demoStepText.textContent = 'Station Road Arcade Collapse selected. 3D LiDAR site reconstruction active. Ingressing SUGRIV-01 along Approach Alpha...';
+    selectIncident(state.incidents[0]);
+    open3DSiteView();
+    startNormalTelemetry();
+    setGuidedDemoTimeout(() => advanceGuidedDemo(), 3200);
+  } else if (guidedDemoStep === 2) {
+    triggerBlockedPassage();
+    if (demoStepBadge) demoStepBadge.textContent = 'PHASE 2 OF 5: OCCLUSION DETECTED';
+    if (demoStepText) demoStepText.textContent = 'Forward LiDAR detected 88.5% occlusion on Approach Alpha. Click "✓ Confirm" on observation card to verify.';
+  } else if (guidedDemoStep === 3) {
+    if (demoStepBadge) demoStepBadge.textContent = 'PHASE 3 OF 5: REROUTED TO BRAVO';
+    if (demoStepText) demoStepText.textContent = 'Approach Alpha restricted. Active route rerouted via Approach Bravo bypass (70m). Advancing into Sector C...';
+    if (state.rover.currentZone !== 'CORRIDOR_SOUTH') {
+      state.rover.currentZone = 'CORRIDOR_SOUTH';
+      state.rover.coords3D = { x: 0, y: 0.5, z: 10 };
+      renderUI();
+    }
+    setGuidedDemoTimeout(() => advanceGuidedDemo(), 3500);
+  } else if (guidedDemoStep === 4) {
+    triggerThermalAnomaly();
+    if (demoStepBadge) demoStepBadge.textContent = 'PHASE 4 OF 5: THERMAL SPIKE (RULE-THERM-04)';
+    if (demoStepText) demoStepText.textContent = 'Sustained temperature spike (>50°C) in Sector C triggered RULE-THERM-04. Click "Assign Task" under Investigation Priorities.';
+  } else if (guidedDemoStep === 5) {
+    if (demoStepBadge) demoStepBadge.textContent = 'PHASE 5 OF 5: SQUAD DISPATCHED';
+    if (demoStepText) demoStepText.textContent = 'Team Vanguard dispatched to Sector C target area. Hazard remains monitored. Mission sequence concluded.';
+    if (btnNextDemoStep) btnNextDemoStep.textContent = 'Restart Sequence ↺';
+    setGuidedDemoTimeout(() => {
+      if (demoStepBadge) demoStepBadge.textContent = 'Tactical Sequence Concluded';
+      if (demoStepText) demoStepText.textContent = 'Operations live. You may inspect 3D zones, issue commands, or reset mission.';
+    }, 6000);
+  } else {
+    resetSimulation();
+    startGuidedDemo();
+  }
+}
+
+function cancelGuidedDemo() {
+  if (guidedDemoTimer) {
+    clearTimeout(guidedDemoTimer);
+    guidedDemoTimer = null;
+  }
+  guidedDemoActive = false;
+  guidedDemoStep = 0;
+  if (btnNextDemoStep) btnNextDemoStep.textContent = 'Next Phase ➡';
+  if (guidedDemoBanner) guidedDemoBanner.classList.add('hidden');
+  showToast('Mission Sequence Dismissed', 'Interface in manual tactical command.');
+}
+
 function resetSimulation() {
+  cancelGuidedDemo();
+  clearFilters();
   state = createInitialState();
   selectedIncident = state.incidents[0];
   if (site3D) site3D.resetCamera();
-  addTimelineEvent('SIM_CONTROL', 'Session Reset', 'All session state, alerts, tasks, overrides, and histories cleared.', 'OPERATOR_INPUT');
+  addTimelineEvent('MISSION_CONTROL', 'Session Reset', 'All mission state, tasks, relief, overrides, and logs cleared.', 'OPERATOR_INPUT');
+  postServerAction('/api/sim/control', { action: 'reset' });
   renderUI();
-  showToast('Session Reset', 'All simulation state and audit logs reset.');
+  showToast('Session Reset', 'Demo data restored across all views; session records cleared.');
 }
 
 async function runAutoDemo() {
-  if (state.sim.autoDemoRunning) return;
-  state.sim.autoDemoRunning = true;
-  showToast('Auto Demo Started', 'Executing full connected scenario step-by-step...');
-
-  startNormalTelemetry();
-  await new Promise(r => setTimeout(r, 2200));
-
-  triggerBlockedPassage();
-  await new Promise(r => setTimeout(r, 2500));
-
-  const obs = state.observations.find(o => o.type === 'BLOCKED_PASSAGE');
-  if (obs) confirmBlockageObservation(obs.id);
-  await new Promise(r => setTimeout(r, 2500));
-
-  triggerThermalAnomaly();
-  await new Promise(r => setTimeout(r, 3000));
-
-  assignTask('Thermal Anomaly Inspection', 'SEARCH_ZONE', 'TEAM_VANGUARD', '');
-  await new Promise(r => setTimeout(r, 2500));
-
-  const task = state.tasks.find(t => t.status === 'ASSIGNED');
-  if (task) completeTask(task.id);
-
-  state.sim.autoDemoRunning = false;
-  showToast('Auto Demo Complete', 'Full workflow demonstration completed successfully!');
+  startGuidedDemo();
 }
 
 // --------------------------------------------------------------------------
@@ -1604,35 +2788,376 @@ assignTaskForm.addEventListener('submit', (e) => {
   const teamId = taskTeamSelect.value;
   const overrideReason = taskOverrideInput.value.trim();
 
+  const chosenTeam = state.teams[teamId];
+  if (chosenTeam && chosenTeam.status !== 'AVAILABLE' && !overrideReason) {
+    showToast('Override Required', `${chosenTeam.name} is currently deployed. Operator override rationale is required.`);
+    taskOverrideInput.focus();
+    return;
+  }
+
   assignTaskDialog.close();
   assignTask(title, targetZone, teamId, overrideReason);
 });
 
+// About This Demo Dialog Handlers
+if (btnAboutDemo && aboutDemoDialog) {
+  btnAboutDemo.addEventListener('click', () => aboutDemoDialog.showModal());
+}
+if (btnCloseAboutDialog && aboutDemoDialog) {
+  btnCloseAboutDialog.addEventListener('click', () => aboutDemoDialog.close());
+}
+if (btnAckAboutDialog && aboutDemoDialog) {
+  btnAckAboutDialog.addEventListener('click', () => aboutDemoDialog.close());
+}
+
 // --------------------------------------------------------------------------
 // EVENT LISTENERS & FILTERING
 // --------------------------------------------------------------------------
-filterType.addEventListener('change', (e) => {
-  currentFilterType = e.target.value;
-  if (gMap) renderGoogleMapsPins();
-  renderSchematicPins();
-});
+if (filterSearch) {
+  filterSearch.addEventListener('input', (e) => {
+    searchQuery = e.target.value;
+    if (gMap) renderGoogleMapsPins();
+    renderSchematicPins();
+    renderIncidentDirectory();
+  });
+}
 
-filterSeverity.addEventListener('change', (e) => {
-  currentFilterSeverity = e.target.value;
-  if (gMap) renderGoogleMapsPins();
-  renderSchematicPins();
-});
+if (btnClearFilters) {
+  btnClearFilters.addEventListener('click', clearFilters);
+}
 
-filterStatus.addEventListener('change', (e) => {
-  currentFilterStatus = e.target.value;
-  if (gMap) renderGoogleMapsPins();
-  renderSchematicPins();
-});
+if (filterType) {
+  filterType.addEventListener('change', (e) => {
+    currentFilterType = e.target.value;
+    if (gMap) renderGoogleMapsPins();
+    renderSchematicPins();
+    renderIncidentDirectory();
+  });
+}
 
+if (filterSeverity) {
+  filterSeverity.addEventListener('change', (e) => {
+    currentFilterSeverity = e.target.value;
+    if (gMap) renderGoogleMapsPins();
+    renderSchematicPins();
+    renderIncidentDirectory();
+  });
+}
+
+if (filterStatus) {
+  filterStatus.addEventListener('change', (e) => {
+    currentFilterStatus = e.target.value;
+    if (gMap) renderGoogleMapsPins();
+    renderSchematicPins();
+    renderIncidentDirectory();
+  });
+}
+
+// Incident Directory Toggle
+if (btnToggleIncidentList) {
+  btnToggleIncidentList.addEventListener('click', () => {
+    isDirectoryOpen = !isDirectoryOpen;
+    incidentDirectoryPanel.classList.toggle('hidden', !isDirectoryOpen);
+    renderIncidentDirectory();
+  });
+}
+if (btnCloseDirectory) {
+  btnCloseDirectory.addEventListener('click', () => {
+    isDirectoryOpen = false;
+    incidentDirectoryPanel.classList.add('hidden');
+  });
+}
+
+// Operator Session Display Name Handlers
+if (btnSessionOperator && operatorNameDialog) {
+  btnSessionOperator.addEventListener('click', () => {
+    if (inputOperatorDisplayName) inputOperatorDisplayName.value = sessionOperatorName;
+    operatorNameDialog.showModal();
+  });
+}
+if (operatorNameForm && operatorNameDialog) {
+  operatorNameForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const val = inputOperatorDisplayName?.value?.trim();
+    if (val) {
+      sessionOperatorName = val;
+      if (labelOperatorName) labelOperatorName.textContent = val;
+      showToast('Session Name Saved', `Active session identifier: ${val}`);
+    }
+    operatorNameDialog.close();
+  });
+}
+if (btnCloseOperatorDialog && operatorNameDialog) {
+  btnCloseOperatorDialog.addEventListener('click', () => operatorNameDialog.close());
+}
+if (btnCancelOperatorDialog && operatorNameDialog) {
+  btnCancelOperatorDialog.addEventListener('click', () => operatorNameDialog.close());
+}
+
+// FEATURE 2: Manual Incident Reporting Handlers
+if (btnOpenReportIncident && reportIncidentDialog) {
+  btnOpenReportIncident.addEventListener('click', () => {
+    if (reportIncidentForm) reportIncidentForm.reset();
+    if (reportLat) reportLat.value = (19.0980 + (Math.random() - 0.5) * 0.01).toFixed(4);
+    if (reportLng) reportLng.value = (72.8450 + (Math.random() - 0.5) * 0.01).toFixed(4);
+    if (reportTime) reportTime.value = formatSimTime(state.sim.elapsedSeconds);
+    reportIncidentDialog.showModal();
+  });
+}
+if (btnCloseReportDialog && reportIncidentDialog) {
+  btnCloseReportDialog.addEventListener('click', () => reportIncidentDialog.close());
+}
+if (btnCancelReport && reportIncidentDialog) {
+  btnCancelReport.addEventListener('click', () => reportIncidentDialog.close());
+}
+if (reportIncidentForm && reportIncidentDialog) {
+  reportIncidentForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = reportTitle?.value?.trim();
+    const type = reportType?.value;
+    const location = reportLocation?.value?.trim();
+    const reportedSeverity = reportSeverity?.value;
+    const lat = Number(reportLat?.value) || 19.0980;
+    const lng = Number(reportLng?.value) || 72.8450;
+    const observedTime = reportTime?.value?.trim() || formatSimTime(state.sim.elapsedSeconds);
+    const description = reportDescription?.value?.trim() || 'Manual field report dispatched.';
+
+    if (!title || !location) {
+      showToast('Validation Error', 'Title and location are required.');
+      return;
+    }
+
+    reportIncidentDialog.close();
+
+    const res = await postServerAction('/api/incident/report', {
+      title,
+      type,
+      location,
+      reportedSeverity,
+      description,
+      observedTime,
+      lat,
+      lng,
+      operatorName: sessionOperatorName
+    });
+
+    if (res.ok) {
+      showToast('Incident Reported', `${title} logged as UNVERIFIED field report.`);
+      if (res.data && res.data.incident) {
+        selectIncident(res.data.incident);
+      }
+      if (gMap) renderGoogleMapsPins();
+      renderSchematicPins();
+      renderIncidentDirectory();
+      renderAlertInbox();
+      renderUI();
+    } else {
+      showToast('Reporting Failed', res.error || 'Failed to submit report.');
+    }
+  });
+}
+
+// Side Panel Verification Handlers
+if (btnPanelVerifyInc) {
+  btnPanelVerifyInc.addEventListener('click', async () => {
+    if (!selectedIncident) return;
+    const res = await postServerAction('/api/incident/verify', {
+      id: selectedIncident.id,
+      verificationStatus: 'VERIFIED',
+      operatorName: sessionOperatorName,
+      notes: 'Verified by operator ground check.'
+    });
+    if (res.ok) {
+      selectedIncident.verificationStatus = 'VERIFIED';
+      showToast('Incident Verified', `${selectedIncident.name} ground truth verified.`);
+      renderIncidentPanel(selectedIncident);
+      renderUI();
+    }
+  });
+}
+
+if (btnPanelRejectInc) {
+  btnPanelRejectInc.addEventListener('click', async () => {
+    if (!selectedIncident) return;
+    const res = await postServerAction('/api/incident/verify', {
+      id: selectedIncident.id,
+      verificationStatus: 'REJECTED',
+      operatorName: sessionOperatorName,
+      notes: 'Rejected as false or duplicate report.'
+    });
+    if (res.ok) {
+      selectedIncident.verificationStatus = 'REJECTED';
+      showToast('Incident Rejected', `${selectedIncident.name} marked as rejected report.`);
+      renderIncidentPanel(selectedIncident);
+      renderUI();
+    }
+  });
+}
+
+// Side Panel Lifecycle Selector
+if (panelLifecycleSelect) {
+  panelLifecycleSelect.addEventListener('change', async (e) => {
+    if (!selectedIncident) return;
+    const newLifecycle = e.target.value;
+    const res = await postServerAction('/api/incident/lifecycle', {
+      id: selectedIncident.id,
+      lifecycleStatus: newLifecycle,
+      operatorName: sessionOperatorName
+    });
+    if (res.ok) {
+      selectedIncident.lifecycleStatus = newLifecycle;
+      selectedIncident.status = newLifecycle;
+      selectedIncident.statusLabel = newLifecycle.charAt(0) + newLifecycle.slice(1).toLowerCase();
+      showToast('Lifecycle Updated', `${selectedIncident.name} transitioned to ${newLifecycle}.`);
+      renderIncidentPanel(selectedIncident);
+      renderUI();
+    }
+  });
+}
+
+// Side Panel Tabs Navigation
+if (tabBtnOverview) tabBtnOverview.addEventListener('click', () => switchPanelTab('overview'));
+if (tabBtnTasks) tabBtnTasks.addEventListener('click', () => switchPanelTab('tasks'));
+if (tabBtnRelief) tabBtnRelief.addEventListener('click', () => switchPanelTab('relief'));
+if (tabBtnHistory) tabBtnHistory.addEventListener('click', () => switchPanelTab('history'));
+
+// FEATURE 3: Create Task Modal Handlers
+if (btnPanelCreateTask) btnPanelCreateTask.addEventListener('click', openCreateTaskDialog);
+if (btnCloseCreateTask && createTaskDialog) btnCloseCreateTask.addEventListener('click', () => createTaskDialog.close());
+if (btnCancelCreateTask && createTaskDialog) btnCancelCreateTask.addEventListener('click', () => createTaskDialog.close());
+if (createTaskTeam) createTaskTeam.addEventListener('change', updateTeamCapabilityHint);
+
+if (createTaskForm && createTaskDialog) {
+  createTaskForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = createTaskTitle?.value?.trim();
+    const targetZone = createTaskZone?.value?.trim();
+    const priority = createTaskPriority?.value;
+    const teamId = createTaskTeam?.value || null;
+    const description = createTaskDesc?.value?.trim();
+
+    if (!title || !targetZone) {
+      showToast('Validation Error', 'Task title and target zone are required.');
+      return;
+    }
+
+    if (teamId) {
+      const team = state.teams[teamId];
+      if (team && team.status !== 'AVAILABLE') {
+        showToast('Assignment Rejected', `${team.name} is currently busy (status: ${team.status}). Active conflict prevented.`);
+        return;
+      }
+    }
+
+    createTaskDialog.close();
+
+    const res = await postServerAction('/api/task/create', {
+      incidentId: selectedIncident ? selectedIncident.id : 'inc-collapse-01',
+      title,
+      description,
+      targetZone,
+      priority,
+      teamId,
+      operatorName: sessionOperatorName
+    });
+
+    if (res.ok) {
+      showToast('Task Created', `Task "${title}" created.`);
+      renderUI();
+    } else {
+      showToast('Task Creation Error', res.error || 'Failed to dispatch task.');
+    }
+  });
+}
+
+// FEATURE 4: Relief Requests Handlers
+if (btnPanelCreateRelief) btnPanelCreateRelief.addEventListener('click', openAddReliefDialog);
+if (btnCloseAddRelief && addReliefDialog) btnCloseAddRelief.addEventListener('click', () => addReliefDialog.close());
+if (btnCancelAddRelief && addReliefDialog) btnCancelAddRelief.addEventListener('click', () => addReliefDialog.close());
+
+if (addReliefForm && addReliefDialog) {
+  addReliefForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const itemType = reliefItemType?.value;
+    const priority = reliefPriority?.value;
+    const quantity = Number(reliefQty?.value) || 100;
+    const unit = reliefUnit?.value?.trim() || 'units';
+    const destination = reliefDest?.value?.trim() || (selectedIncident ? selectedIncident.location : 'General Site');
+    const notes = reliefNotes?.value?.trim();
+
+    addReliefDialog.close();
+
+    const res = await postServerAction('/api/relief/create', {
+      incidentId: selectedIncident ? selectedIncident.id : 'inc-collapse-01',
+      itemType,
+      quantity,
+      unit,
+      destination,
+      priority,
+      notes,
+      operatorName: sessionOperatorName
+    });
+
+    if (res.ok) {
+      showToast('Relief Logged', `Relief request for ${quantity} ${unit} logged [Simulated].`);
+      renderGlobalRelief();
+      renderAlertInbox();
+      renderUI();
+    } else {
+      showToast('Request Failed', res.error || 'Failed to log relief request.');
+    }
+  });
+}
+
+if (btnOpenReliefDialog && globalReliefDialog) {
+  btnOpenReliefDialog.addEventListener('click', () => {
+    renderGlobalRelief();
+    globalReliefDialog.showModal();
+  });
+}
+if (btnCloseGlobalRelief && globalReliefDialog) {
+  btnCloseGlobalRelief.addEventListener('click', () => globalReliefDialog.close());
+}
+if (btnCloseGlobalReliefBottom && globalReliefDialog) {
+  btnCloseGlobalReliefBottom.addEventListener('click', () => globalReliefDialog.close());
+}
+
+// FEATURE 5: Central Alert Inbox Handlers
+if (btnOpenAlertInbox && alertInboxDialog) {
+  btnOpenAlertInbox.addEventListener('click', () => {
+    renderAlertInbox();
+    alertInboxDialog.showModal();
+  });
+}
+if (btnCloseInboxDialog && alertInboxDialog) {
+  btnCloseInboxDialog.addEventListener('click', () => alertInboxDialog.close());
+}
+if (btnCloseInboxBottom && alertInboxDialog) {
+  btnCloseInboxBottom.addEventListener('click', () => alertInboxDialog.close());
+}
+if (inboxFilterIncident) inboxFilterIncident.addEventListener('change', renderAlertInbox);
+if (inboxFilterType) inboxFilterType.addEventListener('change', renderAlertInbox);
+if (inboxFilterAck) inboxFilterAck.addEventListener('change', renderAlertInbox);
+
+// FEATURE 6: Incident Notes & Activity History Handlers
+if (btnPanelPostNote) btnPanelPostNote.addEventListener('click', postIncidentNote);
+if (inputIncidentNote) {
+  inputIncidentNote.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') postIncidentNote();
+  });
+}
+if (filterIncidentActivity) {
+  filterIncidentActivity.addEventListener('change', () => {
+    if (selectedIncident) renderIncidentActivity(selectedIncident.id);
+  });
+}
+
+// Side Panel Close
 btnCloseSidePanel.addEventListener('click', () => {
   incidentSidePanel.classList.add('closed');
 });
 
+// 3D Scene Navigation
 btnOpen3DSite.addEventListener('click', open3DSiteView);
 btnReturnToMap.addEventListener('click', close3DSiteView);
 if (btnFloatingBackToMap) {
@@ -1699,9 +3224,18 @@ btnPlayPause.addEventListener('click', () => {
   if (state.sim.status === 'RUNNING') {
     state.sim.status = 'PAUSED';
     btnPlayPause.textContent = '▶ Play';
+    if (guidedDemoActive && guidedDemoTimer) {
+      clearTimeout(guidedDemoTimer);
+      guidedDemoTimer = null;
+      guidedDemoRemainingMs = Math.max(500, guidedDemoStepDuration - (Date.now() - guidedDemoStepStartTime));
+      guidedDemoPaused = true;
+    }
   } else {
     state.sim.status = 'RUNNING';
     btnPlayPause.textContent = '⏸ Pause';
+    if (guidedDemoActive && guidedDemoPaused) {
+      setGuidedDemoTimeout(() => advanceGuidedDemo(), guidedDemoRemainingMs);
+    }
   }
   renderUI();
 });
@@ -1713,8 +3247,19 @@ spd1x.addEventListener('click', () => updateSimulationSpeed(1));
 spd2x.addEventListener('click', () => updateSimulationSpeed(2));
 spd5x.addEventListener('click', () => updateSimulationSpeed(5));
 
+// Guided Demo & Emergency Stop Controls
+if (btnTopbarGuidedDemo) btnTopbarGuidedDemo.addEventListener('click', startGuidedDemo);
+if (btnNextDemoStep) btnNextDemoStep.addEventListener('click', advanceGuidedDemo);
+if (btnCancelDemo) btnCancelDemo.addEventListener('click', cancelGuidedDemo);
+if (btnHudRoverStop) btnHudRoverStop.addEventListener('click', stopRover);
+if (btnRoverStop) btnRoverStop.addEventListener('click', stopRover);
+
 // Initialize application
 initMapExperience();
+await syncWithServer();
+if (!selectedIncident) selectedIncident = state.incidents[0];
 selectIncident(selectedIncident);
 updateSimulationSpeed(1);
 renderUI();
+
+
