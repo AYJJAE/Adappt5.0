@@ -599,6 +599,20 @@ const hudSpotTemp = document.querySelector('#hud-spot-temp');
 const hudLidarRange = document.querySelector('#hud-lidar-range');
 const hudConnHealth = document.querySelector('#hud-conn-health');
 const hudSimTime = document.querySelector('#hud-sim-time');
+const threeNavHint = document.querySelector('#three-nav-hint');
+const btnHudCamCenter = document.querySelector('#btn-hud-cam-center');
+const btnHudResumeRoute = document.querySelector('#btn-hud-resume-route');
+const btnPtzUp = document.querySelector('#btn-ptz-up');
+const btnPtzDown = document.querySelector('#btn-ptz-down');
+const btnPtzLeft = document.querySelector('#btn-ptz-left');
+const btnPtzRight = document.querySelector('#btn-ptz-right');
+const btnPtzReset = document.querySelector('#btn-ptz-reset');
+const btnPtzZoomIn = document.querySelector('#btn-ptz-zoom-in');
+const btnPtzZoomOut = document.querySelector('#btn-ptz-zoom-out');
+const btnDriveFwd = document.querySelector('#btn-drive-fwd');
+const btnDriveRev = document.querySelector('#btn-drive-rev');
+const btnDriveLeft = document.querySelector('#btn-drive-left');
+const btnDriveRight = document.querySelector('#btn-drive-right');
 
 // Guided Demo Banner
 const btnTopbarGuidedDemo = document.querySelector('#btn-topbar-guided-demo');
@@ -649,6 +663,8 @@ const reportTime = document.querySelector('#report-time');
 const reportDescription = document.querySelector('#report-description');
 const btnCloseReportDialog = document.querySelector('#btn-close-report-dialog');
 const btnCancelReport = document.querySelector('#btn-cancel-report');
+const btnPickReportCoords = document.querySelector('#btn-pick-report-coords');
+let isPickingReportCoords = false;
 
 // Central Alert Inbox Dialog
 const alertInboxDialog = document.querySelector('#alert-inbox-dialog');
@@ -988,6 +1004,18 @@ function onGoogleMapsReady() {
       fullscreenControl: false
     });
 
+    gMap.addListener('click', (e) => {
+      if (isPickingReportCoords) {
+        isPickingReportCoords = false;
+        const lat = e.latLng.lat().toFixed(4);
+        const lng = e.latLng.lng().toFixed(4);
+        if (reportLat) reportLat.value = lat;
+        if (reportLng) reportLng.value = lng;
+        if (reportIncidentDialog) reportIncidentDialog.showModal();
+        showToast('Coordinates Selected', `Selected Position: [${lat}, ${lng}]`);
+      }
+    });
+
     renderGoogleMapsPins();
     monitorGoogleMapsErrors();
   } catch (err) {
@@ -1287,6 +1315,22 @@ if (schematicRegionalSvg) {
     if (isPanningSchematic) {
       isPanningSchematic = false;
       if (schematicRegionalSvg) schematicRegionalSvg.style.cursor = 'grab';
+    }
+  });
+
+  schematicRegionalSvg.addEventListener('click', (e) => {
+    if (isPickingReportCoords) {
+      isPickingReportCoords = false;
+      const pt = schematicRegionalSvg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const svgP = pt.matrixTransform(schematicRegionalSvg.getScreenCTM().inverse());
+      const calcLng = (72.8300 + (Math.max(0, Math.min(2400, svgP.x)) / 2400) * 0.0300).toFixed(4);
+      const calcLat = (19.1100 - (Math.max(0, Math.min(1600, svgP.y)) / 1600) * 0.0300).toFixed(4);
+      if (reportLat) reportLat.value = calcLat;
+      if (reportLng) reportLng.value = calcLng;
+      if (reportIncidentDialog) reportIncidentDialog.showModal();
+      showToast('Coordinates Selected', `Tactical Position: [${calcLat}, ${calcLng}]`);
     }
   });
 }
@@ -2520,6 +2564,7 @@ function stopRover() {
   state.rover.moving = false;
   state.rover.speedMps = 0.0;
   state.rover.status = 'STANDBY';
+  if (site3D) site3D.stopManualDriving();
   addTimelineEvent('ROVER_CONTROL', 'Rover Emergency Halt', 'Operator triggered STOP. Vehicle halted immediately.', 'OPERATOR_INPUT');
   renderUI();
   postServerAction('/api/rover/stop', {});
@@ -2908,7 +2953,17 @@ if (btnCloseReportDialog && reportIncidentDialog) {
   btnCloseReportDialog.addEventListener('click', () => reportIncidentDialog.close());
 }
 if (btnCancelReport && reportIncidentDialog) {
-  btnCancelReport.addEventListener('click', () => reportIncidentDialog.close());
+  btnCancelReport.addEventListener('click', () => {
+    isPickingReportCoords = false;
+    reportIncidentDialog.close();
+  });
+}
+if (btnPickReportCoords && reportIncidentDialog) {
+  btnPickReportCoords.addEventListener('click', () => {
+    isPickingReportCoords = true;
+    reportIncidentDialog.close();
+    showToast('Location Picker Active', 'Click anywhere on the tactical map to set coordinates.');
+  });
 }
 if (reportIncidentForm && reportIncidentDialog) {
   reportIncidentForm.addEventListener('submit', async (e) => {
@@ -3180,6 +3235,9 @@ btnCamOrbit.addEventListener('click', () => {
   btnCamOrbit.className = 'btn btn-sm btn-primary';
   btnCamRover.className = 'btn btn-sm btn-outline';
   roverHudOverlay.classList.add('hidden');
+  if (threeNavHint) {
+    threeNavHint.innerHTML = '<span>Left-click: <b>Rotate</b></span> | <span>Right-click / Shift: <b>Pan</b></span> | <span>Scroll: <b>Zoom</b></span> | <span>Click zone/rubble for inspection</span>';
+  }
   if (site3D) site3D.setCameraMode('orbit');
 });
 
@@ -3187,6 +3245,9 @@ btnCamRover.addEventListener('click', () => {
   btnCamRover.className = 'btn btn-sm btn-primary';
   btnCamOrbit.className = 'btn btn-sm btn-outline';
   roverHudOverlay.classList.remove('hidden');
+  if (threeNavHint) {
+    threeNavHint.innerHTML = '<span>Left-click Drag: <b>Look / Pan-Tilt Mast</b></span> | <span>Scroll: <b>Zoom (1x-4x)</b></span> | <span>W,A,S,D / Arrows: <b>Drive Rover</b></span> | <span>C: <b>Center Mast</b></span>';
+  }
   if (site3D) site3D.setCameraMode('rover');
 });
 
@@ -3201,6 +3262,25 @@ btnCamFollow.addEventListener('click', () => {
 btnCamReset.addEventListener('click', () => {
   if (site3D) site3D.resetCamera();
 });
+
+// Interactive HUD Mast Camera & Drive Controls
+if (btnHudCamCenter) btnHudCamCenter.addEventListener('click', () => { if (site3D) site3D.centerMastCamera(); });
+if (btnHudResumeRoute) btnHudResumeRoute.addEventListener('click', () => { if (site3D) site3D.resumeRoute(); });
+
+// PTZ Gimbal Controls
+if (btnPtzUp) btnPtzUp.addEventListener('click', () => { if (site3D) site3D.nudgeMast(0, 0.12); });
+if (btnPtzDown) btnPtzDown.addEventListener('click', () => { if (site3D) site3D.nudgeMast(0, -0.12); });
+if (btnPtzLeft) btnPtzLeft.addEventListener('click', () => { if (site3D) site3D.nudgeMast(0.15, 0); });
+if (btnPtzRight) btnPtzRight.addEventListener('click', () => { if (site3D) site3D.nudgeMast(-0.15, 0); });
+if (btnPtzReset) btnPtzReset.addEventListener('click', () => { if (site3D) site3D.centerMastCamera(); });
+if (btnPtzZoomIn) btnPtzZoomIn.addEventListener('click', () => { if (site3D) site3D.zoomRover(-5); });
+if (btnPtzZoomOut) btnPtzZoomOut.addEventListener('click', () => { if (site3D) site3D.zoomRover(5); });
+
+// Rover Drive Controls
+if (btnDriveFwd) btnDriveFwd.addEventListener('click', () => { if (site3D) site3D.driveRover(2.2, 0); });
+if (btnDriveRev) btnDriveRev.addEventListener('click', () => { if (site3D) site3D.driveRover(-2.2, 0); });
+if (btnDriveLeft) btnDriveLeft.addEventListener('click', () => { if (site3D) site3D.driveRover(0, 0.3); });
+if (btnDriveRight) btnDriveRight.addEventListener('click', () => { if (site3D) site3D.driveRover(0, -0.3); });
 
 btnCloseFlyout.addEventListener('click', () => {
   threeObjectFlyout.classList.add('hidden');

@@ -887,9 +887,14 @@
       <!-- ROVER CAMERA HUD OVERLAY (Visible in Rover Cam mode) -->
       <div class="rover-hud-overlay hidden" id="rover-hud-overlay">
         <div class="hud-top">
-          <span class="hud-label">LIVE OPTICAL RECON // SUGRIV-01 MAST CAM</span>
+          <div class="hud-top-left">
+            <span class="hud-label">LIVE OPTICAL RECON // SUGRIV-01 MAST CAM</span>
+            <span class="hud-cam-stat" id="hud-cam-stat">PAN: 0° | TILT: 0° | ZOOM: 1.0x</span>
+          </div>
           <div class="hud-controls">
-            <button class="btn btn-xs btn-danger-outline" id="btn-hud-rover-stop" type="button" title="Immediately halt rover movement">⏹ STOP ROVER</button>
+            <button class="btn btn-xs btn-outline hud-action-btn" id="btn-hud-cam-center" type="button" title="Center mast camera straight ahead (Key C)">↺ Center Mast</button>
+            <button class="btn btn-xs btn-outline hud-action-btn" id="btn-hud-resume-route" type="button" title="Resume autonomous route following">⚡ Auto-Route</button>
+            <button class="btn btn-xs btn-danger-outline hud-action-btn" id="btn-hud-rover-stop" type="button" title="Immediately halt rover movement">⏹ STOP ROVER</button>
             <span class="hud-rec">● REC [LIVE FEED]</span>
           </div>
         </div>
@@ -900,6 +905,40 @@
           <div class="crosshair-box"></div>
         </div>
 
+        <!-- HUD ON-SCREEN TACTICAL CONTROLS -->
+        <div class="hud-interactive-clusters">
+          <!-- ROVER DRIVE CONTROLS (WASD) -->
+          <div class="hud-drive-cluster" title="Drive Rover across site (or use W, A, S, D / Arrow keys)">
+            <div class="cluster-title">ROVER DRIVE (WASD)</div>
+            <div class="drive-dpad">
+              <button class="hud-ctrl-btn drive-btn" id="btn-drive-fwd" type="button" title="Drive Forward [W] / [↑]">▲ FWD</button>
+              <div class="drive-row">
+                <button class="hud-ctrl-btn drive-btn" id="btn-drive-left" type="button" title="Turn Left [A] / [←]">◄ L</button>
+                <button class="hud-ctrl-btn drive-btn" id="btn-drive-rev" type="button" title="Reverse [S] / [↓]">▼ REV</button>
+                <button class="hud-ctrl-btn drive-btn" id="btn-drive-right" type="button" title="Turn Right [D] / [→]">R ►</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PTZ GIMBAL CONTROLS (PAN / TILT / ZOOM) -->
+          <div class="hud-ptz-cluster" title="Mast Camera Pan, Tilt & Optical Zoom (or drag canvas / scroll wheel)">
+            <div class="cluster-title">MAST GIMBAL (PTZ)</div>
+            <div class="ptz-dpad">
+              <button class="hud-ctrl-btn ptz-btn" id="btn-ptz-up" type="button" title="Tilt Up (Drag up)">▲</button>
+              <div class="ptz-row">
+                <button class="hud-ctrl-btn ptz-btn" id="btn-ptz-left" type="button" title="Pan Left (Drag left)">◄</button>
+                <button class="hud-ctrl-btn ptz-btn ptz-center-btn" id="btn-ptz-reset" type="button" title="Center View [C]">⦿</button>
+                <button class="hud-ctrl-btn ptz-btn" id="btn-ptz-right" type="button" title="Pan Right (Drag right)">►</button>
+              </div>
+              <button class="hud-ctrl-btn ptz-btn" id="btn-ptz-down" type="button" title="Tilt Down (Drag down)">▼</button>
+            </div>
+            <div class="ptz-zoom-row">
+              <button class="hud-ctrl-btn ptz-zoom-btn" id="btn-ptz-zoom-in" type="button" title="Optical Zoom In (Scroll Up)">+ ZOOM</button>
+              <button class="hud-ctrl-btn ptz-zoom-btn" id="btn-ptz-zoom-out" type="button" title="Optical Zoom Out (Scroll Down)">- ZOOM</button>
+            </div>
+          </div>
+        </div>
+
         <div class="hud-telemetry-strip">
           <div class="hud-metric">
             <span class="h-lbl">SPOT THERMAL (IR)</span>
@@ -908,6 +947,10 @@
           <div class="hud-metric">
             <span class="h-lbl">FORWARD LIDAR RANGE</span>
             <span class="h-val" id="hud-lidar-range">18.4 m (CLEAR)</span>
+          </div>
+          <div class="hud-metric">
+            <span class="h-lbl">CAMERA GIMBAL</span>
+            <span class="h-val" id="hud-gimbal-readout">0° AZ / 0° EL (1.0x)</span>
           </div>
           <div class="hud-metric">
             <span class="h-lbl">RF TELEMETRY LINK</span>
@@ -1200,7 +1243,7 @@
           </div>
         </div>
 
-        <div class="form-row" style="display:flex;gap:10px;">
+        <div class="form-row" style="display:flex;gap:10px;align-items:flex-end;">
           <div class="form-group" style="flex:1;">
             <label for="report-lat">Latitude</label>
             <input type="number" step="0.0001" id="report-lat" value="19.0980" required>
@@ -1213,6 +1256,7 @@
             <label for="report-time">Observed Time</label>
             <input type="text" id="report-time" placeholder="e.g. Current Time">
           </div>
+          <button type="button" class="btn btn-xs btn-outline" id="btn-pick-report-coords" style="margin-bottom:6px;white-space:nowrap;" title="Click anywhere on the map to set coordinates">📍 Pick on Map</button>
         </div>
 
         <div class="form-group">

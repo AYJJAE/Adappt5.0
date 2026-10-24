@@ -321,6 +321,7 @@ export function createSite3D(container, options = {}) {
   roverGroup.add(chassisMesh);
 
   // 4 Wheels
+  const wheelMeshes = [];
   const wheelGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.4, 16);
   const wheelMat = new THREE.MeshStandardMaterial({ color: 0x080c10, roughness: 0.9 });
   const wheelPositions = [
@@ -335,6 +336,7 @@ export function createSite3D(container, options = {}) {
     wheel.position.set(wx, wy, wz);
     wheel.castShadow = true;
     roverGroup.add(wheel);
+    wheelMeshes.push(wheel);
   });
 
   // Sensor Mast
@@ -370,10 +372,94 @@ export function createSite3D(container, options = {}) {
 
   scene.add(roverGroup);
 
-  // Position virtual roverCamera onto rover mast
+  // Mast Camera Control State & Setup
+  let mastYaw = 0;
+  let mastPitch = -0.05;
+  let roverFov = 65;
+  let isManualDriving = false;
+  const activeKeys = new Set();
+
+  roverCamera.rotation.order = 'YXZ';
+  roverCamera.position.set(0.7, 1.45, 0);
   roverGroup.add(roverCamera);
-  roverCamera.position.set(0.7, 1.4, 0);
-  roverCamera.rotation.y = -Math.PI / 2; // Look forward (+X direction)
+
+  // Physical Optical Camera Head Mesh on Mast (rotates with camera)
+  const camHead = new THREE.Group();
+  camHead.position.set(0.7, 1.45, 0);
+  camHead.rotation.order = 'YXZ';
+  roverGroup.add(camHead);
+
+  const camBoxMat = new THREE.MeshStandardMaterial({ color: 0x1b293a, metalness: 0.8, roughness: 0.3 });
+  const camBox = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.16, 0.22), camBoxMat);
+  camHead.add(camBox);
+
+  const lensMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, roughness: 0.1, metalness: 0.9 });
+  const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.12, 16), lensMat);
+  lens.rotation.z = Math.PI / 2;
+  lens.position.set(0.12, 0, 0);
+  camBox.add(lens);
+
+  function updateRoverCamera() {
+    roverCamera.rotation.y = -Math.PI / 2 + mastYaw;
+    roverCamera.rotation.x = mastPitch;
+    camHead.rotation.y = -Math.PI / 2 + mastYaw;
+    camHead.rotation.x = mastPitch;
+    roverCamera.fov = roverFov;
+    roverCamera.updateProjectionMatrix();
+  }
+  updateRoverCamera();
+
+  // Dynamic Telemetry & LIDAR Range Calculation
+  const lidarRaycaster = new THREE.Raycaster();
+  function getLidarDistance() {
+    const camPos = new THREE.Vector3();
+    const camDir = new THREE.Vector3();
+    roverCamera.getWorldPosition(camPos);
+    roverCamera.getWorldDirection(camDir);
+    lidarRaycaster.set(camPos, camDir);
+    const hits = lidarRaycaster.intersectObjects(interactables, true);
+    if (hits.length > 0 && hits[0].distance < 45) {
+      return hits[0].distance;
+    }
+    return 18.4;
+  }
+
+  function updateHudDynamicTelemetry() {
+    const panDeg = Math.round((mastYaw * 180) / Math.PI);
+    const tiltDeg = Math.round((mastPitch * 180) / Math.PI);
+    const zoomFactor = (65 / roverFov).toFixed(1);
+
+    const hudCamStat = document.getElementById('hud-cam-stat');
+    if (hudCamStat) {
+      hudCamStat.textContent = `PAN: ${panDeg >= 0 ? '+' : ''}${panDeg}° | TILT: ${tiltDeg >= 0 ? '+' : ''}${tiltDeg}° | ZOOM: ${zoomFactor}x`;
+    }
+
+    const hudGimbal = document.getElementById('hud-gimbal-readout');
+    if (hudGimbal) {
+      hudGimbal.textContent = `${panDeg >= 0 ? '+' : ''}${panDeg}° AZ / ${tiltDeg >= 0 ? '+' : ''}${tiltDeg}° EL (${zoomFactor}x)`;
+    }
+
+    const dist = getLidarDistance();
+    const hudLidar = document.getElementById('hud-lidar-range');
+    if (hudLidar) {
+      const caution = dist < 3.2 ? ' (CAUTION: OBSTACLE CLOSE)' : ' (CLEAR)';
+      hudLidar.textContent = `${dist.toFixed(1)} m${caution}`;
+      hudLidar.style.color = dist < 3.2 ? '#f85149' : '#3fb950';
+    }
+
+    const distToHotspot = roverGroup.position.distanceTo(new THREE.Vector3(20, 1.8, 0));
+    const dynamicTemp = Math.max(22.0, Math.min(68.5, 72 - distToHotspot * 1.6)).toFixed(1);
+    const hudTemp = document.getElementById('hud-spot-temp');
+    if (hudTemp) {
+      hudTemp.textContent = `${dynamicTemp} °C`;
+      hudTemp.style.color = dynamicTemp > 45 ? '#f85149' : '#3fb950';
+    }
+  }
+
+  function clampRoverPosition() {
+    roverGroup.position.x = Math.max(-42, Math.min(42, roverGroup.position.x));
+    roverGroup.position.z = Math.max(-42, Math.min(42, roverGroup.position.z));
+  }
 
   // -------------------------------------------------------------------------
   // INTERACTIVE ORBIT CAMERA CONTROLS
@@ -392,11 +478,15 @@ export function createSite3D(container, options = {}) {
   updateOrbitCamera();
 
   const dom = renderer.domElement;
+  let hasDragged = false;
+  let mouseDownPos = { x: 0, y: 0 };
 
   dom.addEventListener('mousedown', (e) => {
     isDragging = true;
+    hasDragged = false;
     isPanning = e.button === 2 || e.shiftKey;
     prevMouse = { x: e.clientX, y: e.clientY };
+    mouseDownPos = { x: e.clientX, y: e.clientY };
   });
 
   window.addEventListener('mouseup', () => {
@@ -407,11 +497,34 @@ export function createSite3D(container, options = {}) {
   dom.addEventListener('contextmenu', (e) => e.preventDefault());
 
   dom.addEventListener('mousemove', (e) => {
-    if (!isDragging || isRoverView) return;
+    if (!isDragging) return;
 
     const dx = e.clientX - prevMouse.x;
     const dy = e.clientY - prevMouse.y;
     prevMouse = { x: e.clientX, y: e.clientY };
+
+    if (Math.hypot(e.clientX - mouseDownPos.x, e.clientY - mouseDownPos.y) > 4) {
+      hasDragged = true;
+    }
+
+    if (isRoverView) {
+      if (isPanning) {
+        // Right-click or Shift-drag: Pan / Nudge Rover Position
+        const forwardVec = new THREE.Vector3(1, 0, 0).applyQuaternion(roverGroup.quaternion);
+        const rightVec = new THREE.Vector3(0, 0, 1).applyQuaternion(roverGroup.quaternion);
+        roverGroup.position.addScaledVector(rightVec, -dx * 0.03);
+        roverGroup.position.addScaledVector(forwardVec, -dy * 0.03);
+        clampRoverPosition();
+        isManualDriving = true;
+      } else {
+        // Left-click drag: Rotate / Pan & Tilt Mast Camera
+        mastYaw -= dx * 0.004;
+        mastPitch = Math.max(-Math.PI / 2.6, Math.min(Math.PI / 2.6, mastPitch - dy * 0.004));
+        updateRoverCamera();
+      }
+      updateHudDynamicTelemetry();
+      return;
+    }
 
     if (isPanning) {
       // Pan camera
@@ -429,16 +542,51 @@ export function createSite3D(container, options = {}) {
   });
 
   dom.addEventListener('wheel', (e) => {
-    if (isRoverView) return;
+    if (isRoverView) {
+      // Smooth Optical Zoom in Mast Cam Mode
+      roverFov = Math.max(15, Math.min(75, roverFov + e.deltaY * 0.04));
+      updateRoverCamera();
+      updateHudDynamicTelemetry();
+      return;
+    }
     spherical.radius += e.deltaY * 0.05;
     updateOrbitCamera();
   }, { passive: true });
+
+  // Keyboard Driving & Camera Centering
+  function handleKeyDown(e) {
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+    if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyQ', 'KeyE'].includes(e.code)) {
+      if (isRoverView) {
+        activeKeys.add(e.code);
+        isManualDriving = true;
+        e.preventDefault();
+      }
+    }
+    if (e.code === 'KeyC' && isRoverView) {
+      mastYaw = 0;
+      mastPitch = -0.05;
+      roverFov = 65;
+      updateRoverCamera();
+      updateHudDynamicTelemetry();
+    }
+  }
+
+  function handleKeyUp(e) {
+    activeKeys.delete(e.code);
+  }
+
+  window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('keyup', handleKeyUp);
 
   // Raycaster for Clicking 3D Objects
   const raycaster = new THREE.Raycaster();
   const mouseVec = new THREE.Vector2();
 
   dom.addEventListener('click', (e) => {
+    if (hasDragged) return; // Prevent triggering click inspection after camera drag
     const rect = dom.getBoundingClientRect();
     mouseVec.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     mouseVec.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -487,7 +635,32 @@ export function createSite3D(container, options = {}) {
     heatSphereMesh.scale.set(pulse, pulse, pulse);
     heatPointLight.intensity = 1.4 + 0.6 * Math.sin(time * 3);
 
-    // Follow Rover
+    // Keyboard Rover Driving Physics
+    if (isRoverView && activeKeys.size > 0) {
+      let move = 0;
+      let turn = 0;
+      if (activeKeys.has('KeyW') || activeKeys.has('ArrowUp')) move += 1;
+      if (activeKeys.has('KeyS') || activeKeys.has('ArrowDown')) move -= 1;
+      if (activeKeys.has('KeyA') || activeKeys.has('ArrowLeft')) turn += 1;
+      if (activeKeys.has('KeyD') || activeKeys.has('ArrowRight')) turn -= 1;
+      if (activeKeys.has('KeyQ')) turn += 1;
+      if (activeKeys.has('KeyE')) turn -= 1;
+
+      if (turn !== 0) {
+        roverGroup.rotation.y += turn * 2.2 * delta;
+      }
+      if (move !== 0) {
+        const forwardVec = new THREE.Vector3(1, 0, 0).applyQuaternion(roverGroup.quaternion);
+        roverGroup.position.addScaledVector(forwardVec, move * 10.0 * delta);
+        clampRoverPosition();
+        wheelMeshes.forEach(w => {
+          w.rotation.x += move * 15 * delta;
+        });
+      }
+      updateHudDynamicTelemetry();
+    }
+
+    // Follow Rover in Orbit View
     if (followRover && !isRoverView) {
       target.lerp(new THREE.Vector3(roverGroup.position.x, 2, roverGroup.position.z), 0.08);
       updateOrbitCamera();
@@ -505,9 +678,12 @@ export function createSite3D(container, options = {}) {
       if (mode === 'rover') {
         isRoverView = true;
         activeCamera = roverCamera;
+        updateRoverCamera();
+        updateHudDynamicTelemetry();
       } else {
         isRoverView = false;
         activeCamera = orbitCamera;
+        activeKeys.clear();
         updateOrbitCamera();
       }
     },
@@ -517,9 +693,64 @@ export function createSite3D(container, options = {}) {
     },
 
     resetCamera() {
-      target.set(0, 2, 0);
-      spherical = { radius: 52, theta: 0.8, phi: 1.1 };
-      updateOrbitCamera();
+      if (isRoverView) {
+        mastYaw = 0;
+        mastPitch = -0.05;
+        roverFov = 65;
+        updateRoverCamera();
+        updateHudDynamicTelemetry();
+      } else {
+        target.set(0, 2, 0);
+        spherical = { radius: 52, theta: 0.8, phi: 1.1 };
+        updateOrbitCamera();
+      }
+    },
+
+    centerMastCamera() {
+      mastYaw = 0;
+      mastPitch = -0.05;
+      roverFov = 65;
+      updateRoverCamera();
+      updateHudDynamicTelemetry();
+    },
+
+    nudgeMast(dyaw, dpitch) {
+      mastYaw += dyaw;
+      mastPitch = Math.max(-Math.PI / 2.6, Math.min(Math.PI / 2.6, mastPitch + dpitch));
+      updateRoverCamera();
+      updateHudDynamicTelemetry();
+    },
+
+    zoomRover(deltaFov) {
+      roverFov = Math.max(15, Math.min(75, roverFov + deltaFov));
+      updateRoverCamera();
+      updateHudDynamicTelemetry();
+    },
+
+    driveRover(move, turn) {
+      isManualDriving = true;
+      roverGroup.rotation.y += turn;
+      const forwardVec = new THREE.Vector3(1, 0, 0).applyQuaternion(roverGroup.quaternion);
+      roverGroup.position.addScaledVector(forwardVec, move);
+      clampRoverPosition();
+      wheelMeshes.forEach(w => {
+        w.rotation.x += move * 2;
+      });
+      updateHudDynamicTelemetry();
+    },
+
+    stopManualDriving() {
+      isManualDriving = false;
+      activeKeys.clear();
+    },
+
+    resumeRoute() {
+      isManualDriving = false;
+      activeKeys.clear();
+    },
+
+    isManualDriving() {
+      return isManualDriving;
     },
 
     updateFromState(s) {
@@ -549,10 +780,12 @@ export function createSite3D(container, options = {}) {
         heading = 0;
       }
 
-      // Smooth lerp rover position
-      roverGroup.position.x += (targetX - roverGroup.position.x) * 0.15;
-      roverGroup.position.z += (targetZ - roverGroup.position.z) * 0.15;
-      roverGroup.rotation.y = heading;
+      // Smooth lerp rover position if not in user manual driving mode
+      if (!isManualDriving) {
+        roverGroup.position.x += (targetX - roverGroup.position.x) * 0.15;
+        roverGroup.position.z += (targetZ - roverGroup.position.z) * 0.15;
+        roverGroup.rotation.y = heading;
+      }
 
       // Obstacle Barrier (Approach Alpha)
       const hasBlockage = s.observations.some(o => o.type === 'BLOCKED_PASSAGE' && !o.resolved);
@@ -570,6 +803,8 @@ export function createSite3D(container, options = {}) {
         const heatFrac = Math.min(1.8, Math.max(0.4, (s.rover.spotTempC - 20) / 50));
         heatSphereMesh.scale.set(heatFrac, heatFrac, heatFrac);
       }
+
+      updateHudDynamicTelemetry();
     },
 
     resize() {
@@ -578,6 +813,8 @@ export function createSite3D(container, options = {}) {
 
     dispose() {
       if (animId) cancelAnimationFrame(animId);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
     }

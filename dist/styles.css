@@ -965,11 +965,140 @@ body {
   border: 1px solid #238636;
 }
 
-.hud-rec {
-  color: #f85149;
-  font-weight: 800;
+.hud-top-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hud-cam-stat {
+  background: rgba(9, 14, 19, 0.75);
+  color: #58a6ff;
+  font-family: var(--font-mono);
   font-size: 11px;
-  animation: blink-rec 1.2s infinite;
+  font-weight: 600;
+  padding: 4px 8px;
+  border: 1px solid rgba(88, 166, 255, 0.4);
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+}
+
+.hud-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-action-btn {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.hud-interactive-clusters {
+  position: absolute;
+  bottom: 74px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.hud-drive-cluster,
+.hud-ptz-cluster {
+  background: rgba(9, 14, 19, 0.88);
+  border: 1px solid rgba(0, 255, 128, 0.35);
+  border-radius: 6px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.7);
+}
+
+.cluster-title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: #3fb950;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.drive-dpad,
+.ptz-dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.drive-row,
+.ptz-row,
+.ptz-zoom-row {
+  display: flex;
+  gap: 4px;
+}
+
+.hud-ctrl-btn {
+  background: rgba(16, 25, 36, 0.9);
+  border: 1px solid rgba(88, 166, 255, 0.35);
+  color: #e6edf3;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 28px;
+  padding: 0 6px;
+}
+
+.hud-ctrl-btn:hover {
+  background: rgba(35, 134, 54, 0.45);
+  border-color: #3fb950;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(63, 185, 80, 0.45);
+}
+
+.hud-ctrl-btn:active {
+  background: #238636;
+  color: #ffffff;
+  transform: scale(0.95);
+}
+
+.drive-btn {
+  min-width: 48px;
+}
+
+.ptz-btn {
+  min-width: 32px;
+  height: 26px;
+}
+
+.ptz-center-btn {
+  background: rgba(88, 166, 255, 0.2);
+  border-color: #58a6ff;
+  color: #58a6ff;
+}
+
+.ptz-zoom-row {
+  margin-top: 2px;
+}
+
+.ptz-zoom-btn {
+  font-size: 9px;
+  padding: 2px 8px;
+  height: 22px;
 }
 
 @keyframes blink-rec {
